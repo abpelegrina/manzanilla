@@ -1,0 +1,28 @@
+body {
+  padding-top: 50px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+
+.form-signin{
+	width:70%;
+	margin: auto;
+	padding: 5px;
+}
+
+.main-image{
+	width: 70%;
+	margin: auto;
+}
+
+#search-container{
+	padding-top:6px;
+	padding-bottom:6px;
+}
+
+#error-tag{
+	display: none;
+	margin-bottom:4px;
+}

@@ -46,16 +46,32 @@
 
     <div class="container" id='search-container'>
       <div class="page-header">
-        <h1>Tag images from EcoLexicon. <small>Find the images you want by searching for the concept they are related with in EcoLExicion</small></h1>
+        <h1>Upload a new image resource to EcoLexicon. <small></small></h1>
       </div>
-      <div class="input-group">
-
-          <input type="text" class="form-control" id="concept" placeholder="Search text">
-          <span class="input-group-btn" style="width:0;">
-              <button class="btn btn-primary" id="search-by-concept" type="button">Search &nbsp;<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-</button>
-          </span>
-      </div>
+      <form action="upload_done.html">
+        <div class="form-group">
+          <label for="file">Image</label>
+          <input type="file" id="file">
+          <p class="help-block">Select the image you want to upload.</p>
+        </div>
+        <div class="form-group">
+          <label for="resource">Resource</label>
+          <input type="text" class="form-control" id="resource" placeholder="Resource">
+        </div>
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input type="text" class="form-control" id="title" placeholder="Title">
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea  id="description" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="source">Source</label>
+          <input type="text" class="form-control" id="source" placeholder="Source">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
 
 
      <!--form class="form-inline">

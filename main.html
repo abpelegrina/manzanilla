@@ -42,11 +42,16 @@
       </div>
     </nav>
 
+    
+
     <div class="container">
 
       <div class="starter-template">
         <h1>Manzanilla</h1>
-        <p class="lead">Image tagger for EcoLexicon. Powered by <a href='http://camomile-project.github.io/'>Camomile</a></p>
+        <p class="lead">Image tagger for EcoLexicon. Powered by <a target='_blank' href='http://camomile-project.github.io/'>Camomile</a></p>
+
+        <a class="btn btn-lg btn-success" href="tag.html" role="button">Tag an image</a><br><br>
+
         <img  src='pics/rectangle_collage.jpg' />
       </div>
 
@@ -66,12 +71,12 @@
     <script language=javascript>
       $(function (){
 
-        Camomile.setURL('http://manila.ugr.es:3000');
+        console.log(Camomile.setURL('http://manila.ugr.es:3000'));
 
         Camomile.me(function(err, response){
           if (err)
-            console.log('something went wrong!!');
-          else 
+            window.location = 'index.html';
+          else
             $('#greeting').html(response.username);
         });
       });

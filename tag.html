@@ -35,8 +35,8 @@
             <li class="active"><a href="main.html">Home</a></li>
             <li><a href="#">Hello, <span id='greeting'>user</span></a></li> 
             <li><a href="logout.html">Log out</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <!--li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li-->
           </ul>
         </div><!--/.nav-collapse -->
       </div>

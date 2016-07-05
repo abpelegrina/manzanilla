@@ -62,7 +62,7 @@
 
   <div class="row">
     <div class="col-md-8">
-       <?php echo "<img src='http://ecolexicon.ugr.es/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
+       <?php echo "<img id='the-image' src='http://ecolexicon.ugr.es/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
     </div>
     <div class="col-md-4"  id='tag-form'>
 
@@ -73,7 +73,7 @@
       <h4>Add new annotations</h4>
 
       <div class="input-group">
-          <input type="text" class="form-control" id="concept" size="100" placeholder="Search concept">
+          <input type="text" class="form-control" id="concept"  autocomplete="off" size="100" placeholder="Search concept">
           <span class="input-group-btn" style="width:0;">
             <button class="btn btn-primary" id="search-concept" type="button">Search &nbsp;
               <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
@@ -135,14 +135,23 @@
       $(function (){
         var mnz = new Manzanilla();
         mnz.aunthenticate();
-        mnz.getImgConcepts();
-        mnz.setAutocompleteConcept();
+        Manzanilla.loadImageMedium($('#image').val(),function(){
+          $('#the-image').attr('title', Manzanilla.medium.description);
+           mnz.getImgConcepts();
+           mnz.setAutocompleteConcept();
+        });
+       
 
+        $('#tag-relation').click(function(){
+          Manzanilla.gotoTagRelations($('#image').val(), $('#id-image').val());
+        });
 
         $('#search-concept').click(function(e){
           $("#concept").typeahead('hide');
           mnz.searchConcepts($('#concept').val())
         });
+
+        $('#tag-category').click(mnz.tagCategory);
 
         $("#concept").keyup(function(e){ 
            if(e.which == 13)
@@ -162,8 +171,6 @@
 
 
         $(document.body).on('click', '.add-concept', function(event){
-          //removeConceptAnnotation($(this));
-
           console.log($(this).attr('id-concept')+', ' + $(this).attr('concept'));
           mnz.addAnnotationConcept($(this).attr('id-concept'), $(this).attr('concept'));
           $(this).remove();

@@ -52,7 +52,7 @@
 
   <div class="row">
     <div class="col-md-8">
-       <?php echo "<img src='http://ecolexicon.ugr.es/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
+       <?php echo "<img id='the-image' src='http://ecolexicon.ugr.es/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
     </div>
     <div class="col-md-4" id='tag-form'>
         <div class="form-group">
@@ -95,10 +95,19 @@
 
     <script language=javascript>
       $(function (){
+
+
         var mnz = new Manzanilla();
         mnz.aunthenticate();
 
-        mnz.loadImageMedium($('#image').val(), function(){
+        Manzanilla.loadImageMedium($('#image').val(), function(){
+
+          $('#the-image').attr('title', Manzanilla.medium.description);
+          $('#tag-category').click(function(event){
+            $(this).prop('disabled', true);
+            mnz.tagCategory();
+          });
+          
           Camomile.getAnnotations(function(err,response){
             console.log(response);
             if (response.length > 0){
@@ -107,13 +116,10 @@
               console.log(category);
 
               $('#category').val(category);
-
             }
-          }, {filter:{id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id}});
-        });
-
-        $('#tag-category').click(mnz.tagCategory);
+        }, {filter:{id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id}});
       });
+    });
     </script>
 
   </body>

@@ -6,6 +6,10 @@ body {
   text-align: center;
 }
 
+.img-selector{
+	padding: 0px;
+}
+
 .form-signin{
 	width:70%;
 	margin: auto;
@@ -25,4 +29,18 @@ body {
 #error-tag{
 	display: none;
 	margin-bottom:4px;
+}
+
+span.relation{
+	border: solid #ddd 1px;
+	padding: 4px;
+	margin: 0 4px;
+	height: 100%;
+}
+
+.loadinggif {
+   background:
+     url('http://www.hsi.com.hk/HSI-Net/pages/images/en/share/ajax-loader.gif')
+     no-repeat
+     right center;
 }

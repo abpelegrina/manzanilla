@@ -142,7 +142,7 @@
 
       <hr/>
       <div class="input-group">
-        <button type="button" class="btn btn-primary" id='tag-relation'>Go to tag relations »</button>
+        <button type="button" class="btn btn-primary" id='tag-relation'>Go to tag VPKs »</button>
       </div>
 
       <!--
@@ -194,6 +194,10 @@
               $(this).remove();
               mnz.removeAnnotation($(this).attr('id-anno'));
             }
+          });
+
+          $('#tag-relation').click(function(){
+            Manzanilla.gotoTagVPKs($('#image').val(), $('#id-image').val());
           });
 
           $('#add-anno-relation').click(function(){

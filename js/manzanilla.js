@@ -319,6 +319,7 @@ Manzanilla.prototype.removeAnnotation = function(id){
 
 // === VPKS ============================================================================================================================================
 
+
 // === NAVIGATON =======================================================================================================================================
 Manzanilla.gotoTagConcepts = function(img, id_image){
 	window.location = 'tag_concepts.php?img=' + img + '&id=' + id_image+ '&success=ok';
@@ -326,6 +327,10 @@ Manzanilla.gotoTagConcepts = function(img, id_image){
 
 Manzanilla.gotoTagRelations = function(img, id_image){
 	window.location = 'tag_relations.php?img=' + img + '&id=' + id_image;
+}
+
+Manzanilla.gotoTagVPKs = function(img, id_image){
+	window.location = 'tag_vpks.php?img=' + img + '&id=' + id_image;
 }
 
 // === ERROR HANDLING ==============================================================================================================================

@@ -8,6 +8,8 @@ Manzanilla.id_layer_relations = '5771bb21f9ca0a01005bddbc';
 Manzanilla.id_corpus = '5771bb21f9ca0a01005bddb6';
 Manzanilla.medium = '';
 
+
+// === SETTING UP CAMOMILE ============================================================================================================================
 Manzanilla.prototype.setup = function(){
 	console.log(Camomile.setURL('http://manila.ugr.es:3000'));
 }
@@ -39,17 +41,8 @@ Manzanilla.prototype.login = function(){
 		});
 }
 
-Manzanilla.loadImageMedium = function(filename, callback){
 
-	if (Manzanilla.medium == '')
-		Camomile.getMedia(function(err,response){
-			if (response.length > 0){
-				Manzanilla.medium = response[0];
-				callback();
-			}
-		}, {filter:{id_corpus:Manzanilla.id_corpues, name:filename}});
-}
-
+// ===  SEARCH ECOLEXICON IMAGES ======================================================================================================================
 Manzanilla.prototype.loadImages = function(event){
 	var params = {term:$('#concept').val()}
 	$('#concepts').html('');
@@ -71,6 +64,27 @@ Manzanilla.prototype.loadImages = function(event){
 	});
 }
 
+// hides an image and its parent and grand-parent
+function hideImage(image){
+	$(image).parent().parent().hide();
+	console.log('hide!');
+}
+
+
+// === GET IMAGE MEDIUM ================================================================================================================================
+Manzanilla.loadImageMedium = function(filename, callback){
+
+	if (Manzanilla.medium == '')
+		Camomile.getMedia(function(err,response){
+			if (response.length > 0){
+				Manzanilla.medium = response[0];
+				callback();
+			}
+		}, {filter:{id_corpus:Manzanilla.id_corpues, name:filename}});
+}
+
+
+// === CATEGORIES ======================================================================================================================================
 Manzanilla.prototype.tagCategory = function(){
 	console.log('selected category= '+$('#category').val());
 	console.log('id image= ' + $('#id-image').val());
@@ -128,14 +142,8 @@ Manzanilla.prototype.tagCategory = function(){
 	}, {filter:{id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id}});
 }
 
-Manzanilla.gotoTagConcepts = function(img, id_image){
-	window.location = 'tag_concepts.php?img=' + img + '&id=' + id_image+ '&success=ok';
-}
 
-Manzanilla.gotoTagRelations = function(img, id_image){
-	window.location = 'tag_relations.php?img=' + img + '&id=' + id_image;
-}
-
+// === ECOLEXICON CONCEPTS ============================================================================================================================
 Manzanilla.prototype.getImgConcepts = function(){
 	Camomile.getAnnotations(function(err,response){
 		if (err){
@@ -192,7 +200,48 @@ Manzanilla.prototype.setAutocompleteConcept = function(){
 	});
 }
 
+Manzanilla.prototype.searchConcepts = function(term){
+	var params = {query:term}
+	console.log('search term: ' + term);
+	$.getJSON('/puertoterm/manzanilla/concepts_by_term.php', params).done(function(concepts){
+		$('#search-concept-results').html('');
+		$("#concept").typeahead('hide');
+		$.each(concepts,function(key, concept){
+			console.log(concept);
+			var concept_data = concept.id.split('||');
+			var id= concept_data[0];
+			var concepto = concept_data[1];
+			Manzanilla.addConceptToList(id, concept.label, concepto, '#search-concept-results', 'add-concept', '&plus;')
+		});
+	});
+}
 
+Manzanilla.prototype.addAnnotationConcept = function(id_concept, concept){
+
+	var data ={id:id_concept, concept:concept};
+
+	// add annotation
+	Camomile.createAnnotation(Manzanilla.id_layer_concepts, Manzanilla.medium._id, '', data, function(err2,response2){
+		if (err2) {
+			console.log('ERROR while creating annotation in Camomile: ' + err2);
+			showError(err2);
+		}
+		else {
+			console.log(response2);
+			Manzanilla.addConceptToAnnotationList(response2._id, response2.data.concept, '#concept-list', 'remove-concept', '&times;');
+		}
+	});
+}
+
+Manzanilla.addConceptToAnnotationList = function(id, concept, list_id, clase, icon){
+	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id+'"><span>'+icon+'</span>&nbsp;'+concept+'</button>');
+}
+
+Manzanilla.addConceptToList = function(id, label, concept, list_id, clase, icon){
+	$(list_id).append('<button type="button" class="list-group-item '+clase+'" concept="'+concept+'" id-concept="'+id+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
+}
+
+// === ECOLEXICON RELATIONS =========================================================================================================================== 
 Manzanilla.prototype.getImgRelations = function(){
 	Camomile.getAnnotations(function(err,response){
 		if (err){
@@ -236,7 +285,6 @@ Manzanilla.prototype.setAutocompleteRelation = function(target){
 	});
 }
 
-
 Manzanilla.addAnnotationRelation = function(id_source, source, id_relation, relation, id_target, target, callback){
 
 	var data ={ source: {id:id_source, concept:source}, relation:{id:id_relation, relation:relation}, target:{id:id_target, concept:target}};
@@ -253,23 +301,13 @@ Manzanilla.addAnnotationRelation = function(id_source, source, id_relation, rela
 	});
 }
 
-
-Manzanilla.prototype.searchConcepts = function(term){
-	var params = {query:term}
-	console.log('search term: ' + term);
-	$.getJSON('/puertoterm/manzanilla/concepts_by_term.php', params).done(function(concepts){
-		$('#search-concept-results').html('');
-		$("#concept").typeahead('hide');
-		$.each(concepts,function(key, concept){
-			console.log(concept);
-			var concept_data = concept.id.split('||');
-			var id= concept_data[0];
-			var concepto = concept_data[1];
-			Manzanilla.addConceptToList(id, concept.label, concepto, '#search-concept-results', 'add-concept', '&plus;')
-		});
-	});
+Manzanilla.addRelationToAnnotationList = function(id_annotation, id_source, source, id_relation, relation, id_target, target, list_id, clase, icon){
+	var label = '<span class="relation">'+source + '</span><span class="relation">' + relation + '</span><span class="relation">' + target +'</span>';
+	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
 }
 
+
+// === REMOVE ANNOTATION ==============================================================================================================================
 Manzanilla.prototype.removeAnnotation = function(id){
 	Camomile.deleteAnnotation(id, function(err, response){
 		if (err)
@@ -280,43 +318,17 @@ Manzanilla.prototype.removeAnnotation = function(id){
 	});
 }
 
-Manzanilla.prototype.addAnnotationConcept = function(id_concept, concept){
 
-	var data ={id:id_concept, concept:concept};
-
-	// add annotation
-	Camomile.createAnnotation(Manzanilla.id_layer_concepts, Manzanilla.medium._id, '', data, function(err2,response2){
-		if (err2) {
-			console.log('ERROR while creating annotation in Camomile: ' + err2);
-			showError(err2);
-		}
-		else {
-			console.log(response2);
-			Manzanilla.addConceptToAnnotationList(response2._id, response2.data.concept, '#concept-list', 'remove-concept', '&times;');
-		}
-	});
+// === NAVIGATON =======================================================================================================================================
+Manzanilla.gotoTagConcepts = function(img, id_image){
+	window.location = 'tag_concepts.php?img=' + img + '&id=' + id_image+ '&success=ok';
 }
 
-
-Manzanilla.addConceptToAnnotationList = function(id, concept, list_id, clase, icon){
-	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id+'"><span>'+icon+'</span>&nbsp;'+concept+'</button>');
+Manzanilla.gotoTagRelations = function(img, id_image){
+	window.location = 'tag_relations.php?img=' + img + '&id=' + id_image;
 }
 
-
-Manzanilla.addRelationToAnnotationList = function(id_annotation, id_source, source, id_relation, relation, id_target, target, list_id, clase, icon){
-	var label = '<span class="relation">'+source + '</span><span class="relation">' + relation + '</span><span class="relation">' + target +'</span>';
-	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
-}
-
-Manzanilla.addConceptToList = function(id, label, concept, list_id, clase, icon){
-	$(list_id).append('<button type="button" class="list-group-item '+clase+'" concept="'+concept+'" id-concept="'+id+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
-}
-
-function hideImage(image){
-	$(image).parent().parent().hide();
-	console.log('hide!');
-}
-
+// === ERROR HANDLING ==============================================================================================================================
 function showError(error){
 	$('#error-tag').show();
 	$('#error-msg').html('Error while saving annotation: ' + error);

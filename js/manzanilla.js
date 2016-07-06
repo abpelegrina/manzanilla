@@ -333,6 +333,10 @@ Manzanilla.gotoTagVPKs = function(img, id_image){
 	window.location = 'tag_vpks.php?img=' + img + '&id=' + id_image;
 }
 
+Manzanilla.gotoMain = function(img, id_image){
+	window.location = 'main.html';
+}
+
 // === ERROR HANDLING ==============================================================================================================================
 function showError(error){
 	$('#error-tag').show();

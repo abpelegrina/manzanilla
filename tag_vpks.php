@@ -46,7 +46,7 @@
 
 <div class="container" id='search-container'>
   <div class="page-header">
-    <h1>Tagging image &quot;<?php echo $_GET['img']?>&quot;. <small>Tag the image with relations between EcoLexicon concepts.</small></h1>
+    <h1>Tagging image &quot;<?php echo $_GET['img']?>&quot;. <small>Tag the image with VPKs.</small></h1>
   </div>
 
   <div class="row">
@@ -59,7 +59,7 @@
       <div id='relation-list' class="list-group"></div>
 
       <hr>
-      <h4>Add new annotations</h4>
+      <!--h4>Add new annotations</h4>
 
 
       <form class="form-inline">
@@ -72,7 +72,6 @@
 
         <div class="form-group">
           <div class="input-group">
-            <!--div class="input-group-addon">Source</div-->
             <input type="text" class="form-control"  autocomplete="off" name="source" id="source" placeholder="Source concept">
           </div>
         </div>
@@ -108,29 +107,20 @@
         </div>
         <div class="form-group">
           <div class="input-group">
-            <!--div class="input-group-addon">Target</div-->
+            
             <input type="text" class="form-control"  autocomplete="off" id="target" placeholder="Target concept">
           </div>
         </div>
         <button type='button' id='add-anno-relation' class="btn btn-primary">Add</button>
       </form>
-
-      <!--div class="input-group">
-          <input type="text" class="form-control" id="concept" size="100" placeholder="Search concept">
-          <span class="input-group-btn" style="width:0;">
-            <button class="btn btn-primary" id="search-concept" type="button">Search &nbsp;
-              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-            </button>
-          </span>
-      </div-->
-      <br/>
+      <br/-->
       
 
       <input type='hidden' name='id-image' id='id-image' value="<?php echo $_GET['id']?>"/>
       <input type='hidden' name='image' id='image' value="<?php echo $_GET['img']?>"/>
 
 
-      <div class="list-group" id='search-concept-results'></div>
+      <!--div class="list-group" id='search-concept-results'></div>
 
       <div class="alert alert-danger" role="alert" id='error-tag'>
           <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
@@ -140,23 +130,11 @@
 
       <div id='search-concept-results'></div>
 
-      <hr/>
+      <hr/-->
       <div class="input-group">
-        <button type="button" class="btn btn-primary" id='tag-relation'>Go to tag relations »</button>
+        <button type="button" class="btn btn-primary" id='finish'>Finish tagging</button>
       </div>
 
-      <!--
-      <div class="form-group">
-        <label for="category" class="control-label">Choose one category</label>
-        <select name="category" id="category" class="form-control">
-          <option value="photo">Photography</option>
-          <option value="drawing">Drawing</option>
-          <option value="flow">Flow chart</option>
-        </select>
-      </div>
-      
-      <button type="button" class="btn btn-primary" id='tag-category'>Next step »</button>
-      -->
     </div>
   </div>
 
@@ -181,32 +159,9 @@
 
         Manzanilla.loadImageMedium($('#image').val(),function(){
           $('#the-image').attr('title', Manzanilla.medium.description);
-          mnz.getImgRelations();
-          mnz.setAutocompleteRelation($('#source'));
-          mnz.setAutocompleteRelation($('#target'));
-
-          $(document.body).on('click', '.remove-concept', function(event){
-            //removeConceptAnnotation($(this));
-            console.log($(this).attr('id-anno'));
-
-            if(confirm('Do you really want to delete the annotation?')){
-              console.log('remove annotation');
-              $(this).remove();
-              mnz.removeAnnotation($(this).attr('id-anno'));
-            }
+          $('#finish').click(function(){
+            Manzanilla.gotoMain();
           });
-
-          $('#add-anno-relation').click(function(){
-            var id_source = $('#source-id').val(), source = $('#source-concept').val();
-            var id_relation = $('#relation').val(), relation = $("#relation option:selected").text();
-            var id_target = $('#target-id').val(), target = $('#target-concept').val();
-
-
-            Manzanilla.addAnnotationRelation(id_source, source, id_relation, relation, id_target, target,function(annotation){
-              Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;');
-            });
-          });
-
         });
 
       });

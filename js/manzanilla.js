@@ -461,6 +461,7 @@ VPKS.prototype.mouseUp = function() {
 	var that = this;
 	this.addAnnotationVPKs(note, function(annotation){
     	note.id = annotation._id;
+    	VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;');
     	console.log(that.annotations);
 	});
 

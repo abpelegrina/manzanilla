@@ -9,7 +9,7 @@ Manzanilla.id_corpus = '5771bb21f9ca0a01005bddb6';
 Manzanilla.medium = '';
 
 
-// === SETTING UP CAMOMILE ============================================================================================================================
+// === SETTING UP CAMOMILE =============================================================================================================================
 Manzanilla.prototype.setup = function(){
 	console.log(Camomile.setURL('http://manila.ugr.es:3000'));
 }
@@ -143,7 +143,7 @@ Manzanilla.prototype.tagCategory = function(){
 }
 
 
-// === ECOLEXICON CONCEPTS ============================================================================================================================
+// === ECOLEXICON CONCEPTS =============================================================================================================================
 Manzanilla.prototype.getImgConcepts = function(){
 	Camomile.getAnnotations(function(err,response){
 		if (err){
@@ -241,7 +241,7 @@ Manzanilla.addConceptToList = function(id, label, concept, list_id, clase, icon)
 	$(list_id).append('<button type="button" class="list-group-item '+clase+'" concept="'+concept+'" id-concept="'+id+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
 }
 
-// === ECOLEXICON RELATIONS =========================================================================================================================== 
+// === ECOLEXICON RELATIONS ============================================================================================================================ 
 Manzanilla.prototype.getImgRelations = function(){
 	Camomile.getAnnotations(function(err,response){
 		if (err){
@@ -306,8 +306,7 @@ Manzanilla.addRelationToAnnotationList = function(id_annotation, id_source, sour
 	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
 }
 
-
-// === REMOVE ANNOTATION ==============================================================================================================================
+// === GENERIC REMOVE ANNOTATION =======================================================================================================================
 Manzanilla.prototype.removeAnnotation = function(id){
 	Camomile.deleteAnnotation(id, function(err, response){
 		if (err)
@@ -318,6 +317,7 @@ Manzanilla.prototype.removeAnnotation = function(id){
 	});
 }
 
+// === VPKS ============================================================================================================================================
 
 // === NAVIGATON =======================================================================================================================================
 Manzanilla.gotoTagConcepts = function(img, id_image){

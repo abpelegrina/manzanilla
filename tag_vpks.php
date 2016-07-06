@@ -50,87 +50,17 @@
   </div>
 
   <div class="row">
-    <div class="col-md-6">
-       <?php echo "<img  id='the-image' src='http://ecolexicon.ugr.es/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
-    </div>
-    <div class="col-md-6"  id='tag-form'>
-
-      <h4>Current annotations</h4>
-      <div id='relation-list' class="list-group"></div>
-
-      <hr>
-      <!--h4>Add new annotations</h4>
-
-
-      <form class="form-inline">
-
-
-        <input type="hidden" name="source-id" id="source-id" value=""/>
-        <input type="hidden" name="source-concept" id="source-concept" value=""/>
-        <input type="hidden" name="target-id" id="target-id" value=""/>
-        <input type="hidden" name="target-concept" id="target-concept" value=""/>
-
-        <div class="form-group">
-          <div class="input-group">
-            <input type="text" class="form-control"  autocomplete="off" name="source" id="source" placeholder="Source concept">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="exampleInputPassword3">Password</label>
-          <select class="form-control" name="relation" id="relation">
-            <optgroup label="Generic-specific relations">
-              <option value="1">type of</option>
-            </optgroup>
-
-            <optgroup label="Part-whole relations">
-              <option value="3">part of</option>
-              <option value="9">made of</option>
-              <option value="16">delimited by</option>
-              <option value="11">located at</option>
-              <option value="31">takes place in</option>
-              <option value="33">phase of</option>
-            </optgroup>
-
-            <optgroup label="Non-hierarchical relations">
-              <option value="18">affects</option>
-              <option value="14">attribute of</option>
-              <option value="32">causes</option>              
-              <option value="2">opposite of</option>              
-              <option value="20">studies</option>             
-              <option value="23">measures</option>              
-              <option value="22">represents</option>
-              <option value="5">result of</option>
-              <option value="26">effected by</option>
-              <option value="7">has function</option>
-            </optgroup>            
-          </select>
-        </div>
-        <div class="form-group">
-          <div class="input-group">
-            
-            <input type="text" class="form-control"  autocomplete="off" id="target" placeholder="Target concept">
-          </div>
-        </div>
-        <button type='button' id='add-anno-relation' class="btn btn-primary">Add</button>
-      </form>
-      <br/-->
-      
-
+    <div class="col-md-8">
+      <div id='canvas-container'><canvas id='the-canvas'></canvas></div>
       <input type='hidden' name='id-image' id='id-image' value="<?php echo $_GET['id']?>"/>
       <input type='hidden' name='image' id='image' value="<?php echo $_GET['img']?>"/>
+      <!--?php echo "<img  id='the-image' src='/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?-->
+    </div>
+    <div class="col-md-4"  id='tag-form'>
 
-
-      <!--div class="list-group" id='search-concept-results'></div>
-
-      <div class="alert alert-danger" role="alert" id='error-tag'>
-          <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-          <span class="sr-only">Error:</span>
-          <span id='error-mgs'></span>
-      </div>
-
-      <div id='search-concept-results'></div>
-
-      <hr/-->
+      <h4>Current annotations</h4>
+      <div id='vpks-list' class="list-group"></div>
+      <hr>
       <div class="input-group">
         <button type="button" class="btn btn-primary" id='finish'>Finish tagging</button>
       </div>
@@ -157,7 +87,13 @@
         var mnz = new Manzanilla();
         mnz.aunthenticate();
 
+        //document.getElementById("the-canvas").style.background = "url('/visual/imagenes/"+$('#image').val()+"')";
+        var image_path = '/visual/imagenes/' + $("#image").val();
+        
+
+
         Manzanilla.loadImageMedium($('#image').val(),function(){
+          new VPKS(image_path, 'the-canvas', 'canvas-container');
           $('#the-image').attr('title', Manzanilla.medium.description);
           $('#finish').click(function(){
             Manzanilla.gotoMain();

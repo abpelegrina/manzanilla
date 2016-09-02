@@ -32,8 +32,9 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="main.html">Home</a></li>
-            <li><a href="#">Hello, <span id='greeting'>user</span></a></li> 
+            <li><a href="main.html">Home</a></li>
+            <li><a href="#">Hello, <span id='greeting'>user</span></a></li>  
+            <li><a href="tag.html">Tag image</a></li>
             <li><a href="logout.html">Log out</a></li>
             <!--li><a href="#about">About</a></li>
             <li><a href="#contact">Contact</a></li-->

@@ -378,8 +378,6 @@
 
   // Get medium by ID
   my.getMedium = function (medium, callback, options) {
-
-    console.log('jiar!!!');
     callback = callback || default_callback;
     options = options || {};
 

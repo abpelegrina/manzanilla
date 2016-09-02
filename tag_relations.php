@@ -179,7 +179,7 @@
         var mnz = new Manzanilla();
         mnz.aunthenticate();
 
-        Manzanilla.loadImageMedium($('#image').val(),function(){
+        Manzanilla.loadImageMedium($('#id-image').val(),function(){
           $('#the-image').attr('title', Manzanilla.medium.description);
           mnz.getImgRelations();
           mnz.setAutocompleteRelation($('#source'));

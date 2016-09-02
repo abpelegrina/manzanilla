@@ -45,3 +45,7 @@ span.relation{
      right center;
 }
 
+
+#the-canvas{
+	cursor: crosshair;
+}

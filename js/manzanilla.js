@@ -45,7 +45,64 @@ Manzanilla.prototype.login = function(){
 
 // ===  SEARCH ECOLEXICON IMAGES ======================================================================================================================
 Manzanilla.prototype.loadImages = function(event){
-	var params = {term:$('#concept').val()}
+
+
+	// search in the images tagged in Camomile instead of in EcoLexicon DB
+	var concept = $('#concept').val();
+	Camomile.getAnnotations(function(err,response){
+		if (err)
+			showError(err);
+		else if (response.length > 0){
+			var list = {};
+			$.each(response, function(key, annotation){
+				if (annotation.data.concept.includes(concept)){
+					//console.log(annotation);
+
+					if (typeof list[annotation.data.concept] === "undefined"){
+						list[annotation.data.concept] = {};
+						list[annotation.data.concept].id = annotation.data.id;
+						list[annotation.data.concept].annotations = [];
+					}
+						
+
+					list[annotation.data.concept].annotations.push(annotation);
+
+				}
+			});
+
+			console.log(list);
+
+
+			$.each(list, function(concept, data){
+				console.log(concept);
+				var listHTML = '<li class="list-group-item"><strong class="text-capitalize">' + concept+'</strong><ul class="list-inline"  id="concept-'+data.id+'">';
+				$.each(data.annotations, function(key, anno){
+					console.log('\tId medium ' + anno.id_medium);
+
+					Camomile.getMedium(anno.id_medium, function(err, response){
+
+						
+							var responseHTML = "<li class='img-selector'><a target='_blank' href='tag_categories.php?id=" + response._id+"&img="+response.name+"'>";
+							responseHTML += "<img id='eco-image-"+response._id+"' id-image='"+response._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + response.name + "' class='img-thumbnail' title='"+  response.description+"' onerror='javascript:hideImage(this);'/></a></li>";
+							console.log(response);
+							$('#concept-'+anno.data.id).append(responseHTML);
+						
+					});
+				});
+
+
+				listHTML += '</ul></li>';
+
+				$('#concepts').append(listHTML);
+			});
+		}
+		else 
+			console.log('no images associated with the concept :(')
+
+	}, {filter: {id_layer:"5771bb21f9ca0a01005bddba"} });
+
+	/*
+	var params = {}
 	$('#concepts').html('');
 	$.getJSON('/puertoterm/manzanilla/get_images_concept.php', params).done(function(response){
 		$.each(response, function(id,concept){
@@ -62,7 +119,7 @@ Manzanilla.prototype.loadImages = function(event){
 			list += '</ul></li>';
 			$('#concepts').append(list);
 		});
-	});
+	});*/
 }
 
 // hides an image and its parent and grand-parent
@@ -74,14 +131,22 @@ function hideImage(image){
 
 // === GET IMAGE MEDIUM ================================================================================================================================
 Manzanilla.loadImageMedium = function(filename, callback){
-
-	if (Manzanilla.medium == '')
-		Camomile.getMedia(function(err,response){
-			if (response.length > 0){
-				Manzanilla.medium = response[0];
+	console.log('loading image medium...');
+	console.log(filename);
+	if (Manzanilla.medium == '') {
+		console.log('enters');
+		Camomile.getMedium(filename,function(err,response){
+			if (err)
+				console.log(err);
+			else {
+				Manzanilla.medium = response;
+				console.log(Manzanilla.medium);
 				callback();
 			}
-		}, {filter:{id_corpus:Manzanilla.id_corpues, name:filename}});
+		});
+	}
+	else
+		console.log('it fails here!!');
 }
 
 
@@ -367,6 +432,39 @@ var VPKS = function(image_path, canvas_id, container_id){
 		that.ctx.clearRect(0,0,that.canvas.width, that.canvas.height);
 		that.draw();
     });
+
+    // stop drawing when escape key is pressed
+	$(document).keyup(function(e) {
+	     if (e.keyCode == 27 && that.drag) { // escape key maps to keycode `27` 
+	     	console.log('escape key pressed!!!');
+	     	that.drag = false;
+	     	that.draw();
+	    }
+	});
+
+	$(document.body).on('click', '.vpks-list', function(event){
+      //removeConceptAnnotation($(this));
+      var id = $(this).attr('id-anno');
+      console.log(id);
+
+      if(confirm('Do you really want to delete the annotation?')){
+        console.log('remove annotation');
+        $(this).remove();
+        Manzanilla.removeAnnotation(id);
+        //$.each(that.annotations, function(key, annotation){
+
+        var found = false;
+        for (var i=0;  i<that.annotations.length && !found; i++){
+        	if (that.annotations[i].id == id){
+        		found = true;
+        		that.annotations.splice(i, 1);
+        		console.log('borrando...');
+        	}
+        }
+
+        that.draw();
+      }
+    });
 }
 
 
@@ -389,10 +487,11 @@ VPKS.prototype.loadAnnotations = function(){
 
 				that.annotations.push(entry);
 				
-				console.log(annotation);
+				//console.log(annotation);
 				VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;');
 
 
+				//
 				//Manzanilla.removeAnnotation(annotation._id);
 			});
 			that.ctx.clearRect(0,0,that.canvas.width, that.canvas.height);
@@ -451,22 +550,27 @@ VPKS.prototype.mouseDown = function(e) {
 VPKS.prototype.mouseUp = function() {
     this.drag = false;
     
-    var note = {
-			start: {x:this.rect.startX, y:this.rect.startY},
-			size: {width:this.rect.w, height:this.rect.h},
-			annotation:"this is an annotation"
-		};
+    var annotation =  prompt("Please enter the text for the annotation", "");
 
-	this.annotations.push(note);
-	var that = this;
-	this.addAnnotationVPKs(note, function(annotation){
-    	note.id = annotation._id;
-    	VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;');
-    	console.log(that.annotations);
-	});
 
-	this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
+    if (annotation != null) {
+	    var note = {
+				start: {x:this.rect.startX, y:this.rect.startY},
+				size: {width:this.rect.w, height:this.rect.h},
+				annotation:annotation
+			};
+
+		this.annotations.push(note);
+		var that = this;
+		this.addAnnotationVPKs(note, function(annotation){
+	    	note.id = annotation._id;
+	    	VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;');
+	    	console.log(that.annotations);
+		});	
+	}
+
 	this.rect = {};
+	this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
 	this.draw();
 }
 

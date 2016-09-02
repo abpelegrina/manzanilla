@@ -46,7 +46,7 @@
 
 <div class="container" id='search-container'>
   <div class="page-header">
-    <h1>Tagging image &quot;<?php echo $_GET['img']?>&quot;. <small>Tag the image with VPKs.</small></h1>
+    <h1>Tagging image &quot;<?php echo $_GET['img']?>&quot;. <small>Tag the image with VPKs. To tag a VPK just draw a rectangle in the image and input the appropiate label.</small></h1>
   </div>
 
   <div class="row">
@@ -92,13 +92,16 @@
         
 
 
-        Manzanilla.loadImageMedium($('#image').val(),function(){
+        Manzanilla.loadImageMedium($('#id-image').val(),function(){
           new VPKS(image_path, 'the-canvas', 'canvas-container');
           $('#the-image').attr('title', Manzanilla.medium.description);
           $('#finish').click(function(){
             Manzanilla.gotoMain();
           });
         });
+
+
+
 
       });
     </script>

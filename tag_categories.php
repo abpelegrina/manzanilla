@@ -100,7 +100,12 @@
         var mnz = new Manzanilla();
         mnz.aunthenticate();
 
-        Manzanilla.loadImageMedium($('#image').val(), function(){
+         console.log($('#id-image').val());
+
+        Manzanilla.loadImageMedium($('#id-image').val(), function(){
+
+
+          console.log(Manzanilla.medium);
 
           $('#the-image').attr('title', Manzanilla.medium.description);
           $('#tag-category').click(function(event){

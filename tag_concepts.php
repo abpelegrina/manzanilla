@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Manzanila · Image tagger for EcoLexicon</title>
+    <title>Manzanilla · Image tagger for EcoLexicon</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -68,6 +68,7 @@
     <div class="col-md-4"  id='tag-form'>
 
       <h4>Current annotations</h4>
+      <div class='loadinggif' id='loading'>Loading list</div>
       <div id='concept-list' class="list-group"></div>
 
       <hr>
@@ -137,9 +138,19 @@
         var mnz = new Manzanilla();
         mnz.aunthenticate();
         Manzanilla.loadImageMedium($('#id-image').val(),function(){
-          $('#the-image').attr('title', Manzanilla.medium.description);
-           mnz.getImgConcepts();
-           mnz.setAutocompleteConcept();
+
+           var sleep_time = 0;
+
+              if (typeof Manzanilla.id_layer_vpks === "undefined"){
+                console.log('Is undefined. Waiting for the id for concepts...')
+                sleep_time = 500;
+              }
+
+          sleep(sleep_time).then(() => {
+            $('#the-image').attr('title', Manzanilla.medium.description);
+             mnz.getImgConcepts();
+             mnz.setAutocompleteConcept();
+           });
         });
        
 

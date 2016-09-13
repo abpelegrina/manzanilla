@@ -56,6 +56,7 @@
        <?php echo "<img id='the-image' src='http://ecolexicon.ugr.es/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
     </div>
     <div class="col-md-4" id='tag-form'>
+        <div class='loadinggif' id='loading'>Loading category...</div>
         <div class="form-group">
           <label for="category" class="control-label">Choose one category</label>
           <select name="category" id="category" class="form-control">
@@ -114,8 +115,10 @@
             mnz.tagCategory();
           });
           
+          $('#loading').show();
           Camomile.getAnnotations(function(err,response){
             console.log(response);
+             $('#loading').hide();
             if (response.length > 0){
               var category = response[0].data.category;
 

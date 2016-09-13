@@ -1,12 +1,16 @@
+ function sleep (time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
+      }
+
 var Manzanilla = function () {
 
 };
 
-Manzanilla.id_layer_categories = '5771bb21f9ca0a01005bddb8';
+/*Manzanilla.id_layer_categories = '5771bb21f9ca0a01005bddb8';
 Manzanilla.id_layer_concepts = '5771bb21f9ca0a01005bddba';
 Manzanilla.id_layer_relations = '5771bb21f9ca0a01005bddbc';
 Manzanilla.id_layer_vpks = '5771bb21f9ca0a01005bddbe';
-Manzanilla.id_corpus = '5771bb21f9ca0a01005bddb6';
+Manzanilla.id_corpus = '5771bb21f9ca0a01005bddb6';*/
 
 // current medium
 Manzanilla.medium = '';
@@ -18,15 +22,34 @@ Manzanilla.prototype.setup = function(){
 	Camomile.setURL('http://manila.ugr.es:3000');
 }
 
-Manzanilla.prototype.aunthenticate  = function(){
+  var callback_default = function (err, data) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(data);
+    }
+  };
+
+Manzanilla.prototype.aunthenticate  = function(callback){
+	
+	callback = callback || callback_default;
+
 	this.setup();
 	// already logged in? --> to main.html
 	Camomile.me(function(err, response){
-		if (err)
+		
+		if (err){
 			window.location = 'index.html';
-		else 
+		} 
+		else {
+
 			$('#greeting').html(response.username);
+			//Manzanilla.username = response.username;
+			callback(err, response);
+		}
 	});
+	
+	
 }
 
 Manzanilla.prototype.login = function(){
@@ -103,7 +126,7 @@ Manzanilla.prototype.loadImages = function(event){
 		else 
 			console.log('no images associated with the concept :(')
 
-	}, {filter: {id_layer:"5771bb21f9ca0a01005bddba"} });
+	}, {filter: {id_layer:Manzanilla.id_layer_concepts} });
 }
 
 // hides an image and its parent and grand-parent
@@ -183,11 +206,14 @@ Manzanilla.prototype.tagCategory = function(){
 
 // === ECOLEXICON CONCEPTS =============================================================================================================================
 Manzanilla.prototype.getImgConcepts = function(){
+	$('#loading').show();
 	Camomile.getAnnotations(function(err,response){
+		$('#loading').hide();
 		if (err){
 			showError(err);
 		} 
 		else if (response.length > 0){
+
 			$.each(response, function(key, annotation){
 				Manzanilla.addConceptToAnnotationList(annotation._id, annotation.data.concept,'#concept-list', 'remove-concept', '&times;');
 			});
@@ -273,7 +299,9 @@ Manzanilla.addConceptToList = function(id, label, concept, list_id, clase, icon)
 
 // === ECOLEXICON RELATIONS ============================================================================================================================ 
 Manzanilla.prototype.getImgRelations = function(){
+	$('#loading').show();
 	Camomile.getAnnotations(function(err,response){
+		$('#loading').hide();
 		if (err){
 			showError(err);
 		} 
@@ -364,7 +392,8 @@ var VPKS = function(image_path, canvas_id, container_id){
 			id:_,
 			start: {x:_, y:_},
 			size: {width:_, height:_},
-			annotation:""
+			annotation:"",
+			type:aType
 		}
 	*/
 	this.annotations = [];
@@ -402,6 +431,46 @@ var VPKS = function(image_path, canvas_id, container_id){
 	    }
 	});
 
+
+	$('#vpk-dialog').on('shown.bs.modal', function () {
+		$('#annotation').focus()
+	});
+
+
+	$('#vpk-dialog').on('hidden.bs.modal', function () {
+		that.rect = {};
+		that.ctx.clearRect(0,0,that.canvas.width, that.canvas.height);
+		that.draw();
+	});
+
+	$('#save-vpk').click(function(event){
+		$('#vpk-dialog').modal('hide');
+
+		var annotation = $('#annotation').val();
+		var type = $('#type').val();
+
+	    if (annotation != null) {
+		    var note = {
+					start: {x:that.rect.startX, y:that.rect.startY},
+					size: {width:that.rect.w, height:that.rect.h},
+					annotation: annotation,
+					type:type
+				};
+
+			that.annotations.push(note);
+			that.addAnnotationVPKs(note, function(annotation){
+		    	note.id = annotation._id;
+		    	VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;', annotation.data.type);
+		    	console.log(that.annotations);
+			});	
+		}
+
+		that.rect = {};
+		that.ctx.clearRect(0,0,that.canvas.width, that.canvas.height);
+		that.draw();
+		$('#vpk-dialog').modal('hide');
+	});
+
 	$(document.body).on('click', '.vpks-list', function(event){
       //removeConceptAnnotation($(this));
       var id = $(this).attr('id-anno');
@@ -429,22 +498,29 @@ var VPKS = function(image_path, canvas_id, container_id){
 
 VPKS.prototype.loadAnnotations = function(){
 	var that = this;
+
+	$('#loading').show();
 	Camomile.getAnnotations(function(err,response){
+
 		if (err){
 			showError(err);
 		} 
 		else if (response.length > 0){
+
+
+			$('#loading').hide();
 			$.each(response, function(key, annotation){
 				var entry = {};
 				entry.id = annotation._id;
 				entry.start = annotation.fragment.start;
 				entry.size = annotation.fragment.size;
-				entry.annotation = annotation.data;
+				entry.annotation = annotation.data.annotation;
+				entry.type = annotation.data.type;
 
 				that.annotations.push(entry);
 				
-				//console.log(annotation);
-				VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;');
+				console.log(annotation);
+				VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;', annotation.data.type);
 
 
 				//
@@ -454,6 +530,7 @@ VPKS.prototype.loadAnnotations = function(){
 			that.draw();
 		}
 		else {
+			$('#loading').hide();
 			console.log('no vpks for the image :(')
 		}
 
@@ -462,7 +539,7 @@ VPKS.prototype.loadAnnotations = function(){
 
 VPKS.prototype.addAnnotationVPKs = function(annotation, callback){
 
-	var data ={annotation: annotation.annotation};
+	var data ={annotation: annotation.annotation, type: annotation.type};
 	var fragment = {start:{x: annotation.start.x, y:annotation.start.y}, size:{width:annotation.size.width, height:annotation.size.height}}
 
 	Camomile.createAnnotation(Manzanilla.id_layer_vpks, Manzanilla.medium._id, fragment, data, function(err,response){
@@ -478,9 +555,25 @@ VPKS.prototype.addAnnotationVPKs = function(annotation, callback){
 }
 
 // --- UI Stuff ------------------
-VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, clase, icon){
-	//console.log('adding ' + id_annotation + ' to list');
-	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+annotation+'</button>');
+VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, clase, icon, type){
+	console.log('adding ' + type + ' to list');
+
+	var glyph ='';
+	var color = '';
+	if (type == 'label'){
+		glyph = 'glyphicon-tag';
+		color = 'style="color:green"';
+	}
+	else if (type == 'arrow'){
+		glyph = 'glyphicon-arrow-right';
+		color = 'style="color:red"';
+	}
+	else if (type == 'color'){
+		glyph = 'glyphicon-tint';
+		color = 'style="color:blue"';
+	}
+
+	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+annotation+'&nbsp;&nbsp;<span '+ color +' class="glyphicon '+glyph+'"  aria-hidden="true"></button>');
 }
 
 // --- Canvas drawing ------------
@@ -506,14 +599,17 @@ VPKS.prototype.mouseDown = function(e) {
 VPKS.prototype.mouseUp = function() {
     this.drag = false;
     
-    var annotation =  prompt("Please enter the text for the annotation", "");
 
+    $('#vpk-dialog').modal('show');
+    
+    /*var annotation =  prompt("Please enter the text for the annotation", "");
 
     if (annotation != null) {
 	    var note = {
 				start: {x:this.rect.startX, y:this.rect.startY},
 				size: {width:this.rect.w, height:this.rect.h},
-				annotation:annotation
+				annotation:annotation,
+				type:aType;
 			};
 
 		this.annotations.push(note);
@@ -527,7 +623,7 @@ VPKS.prototype.mouseUp = function() {
 
 	this.rect = {};
 	this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
-	this.draw();
+	this.draw();*/
 }
 
 VPKS.prototype.mouseMove = function(e){
@@ -542,18 +638,28 @@ VPKS.prototype.mouseMove = function(e){
 }
 
 VPKS.prototype.draw = function () {
+	this.ctx.lineWidth = 2;
     this.ctx.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
     var that = this;
     $.each(this.annotations, function(key, annotation){
+    	
     	if (that.selected == annotation.id)
+    		that.ctx.strokeStyle = "yellow";
+    	else if (annotation.type == 'arrow')
+    		that.ctx.strokeStyle = "red";
+    	else if (annotation.type == 'color')
+    		that.ctx.strokeStyle = "blue";
+    	else if (annotation.type == 'label')
     		that.ctx.strokeStyle = "green";
-    	else
+    	else 
     		that.ctx.strokeStyle = "red";
     	that.ctx.strokeRect(annotation.start.x, annotation.start.y, annotation.size.width, annotation.size.height);
+    	//roundedRect(that.ctx,annotation.start.x, annotation.start.y, annotation.size.width, annotation.size.height, 6);
     });
     that.ctx.strokeStyle = "red";
     if (this.drag) 
-    	this.ctx.strokeRect(this.rect.startX, this.rect.startY, this.rect.w, this.rect.h);
+    	this.ctx.strokeRect( this.rect.startX, this.rect.startY, this.rect.w, this.rect.h);
+    	//roundedRect(that.ctx, this.rect.startX, this.rect.startY, this.rect.w, this.rect.h, 6);
 }
 
 VPKS.prototype.init = function() {
@@ -566,6 +672,21 @@ VPKS.prototype.init = function() {
     this.canvas.addEventListener('mousemove', function(e){that.mouseMove(e);}, false);
 }
 
+
+
+function roundedRect(ctx,x,y,width,height,radius){
+  ctx.beginPath();
+  ctx.moveTo(x,y+radius);
+  ctx.lineTo(x,y+height-radius);
+  ctx.quadraticCurveTo(x,y+height,x+radius,y+height);
+  ctx.lineTo(x+width-radius,y+height);
+  ctx.quadraticCurveTo(x+width,y+height,x+width,y+height-radius);
+  ctx.lineTo(x+width,y+radius);
+  ctx.quadraticCurveTo(x+width,y,x+width-radius,y);
+  ctx.lineTo(x+radius,y);
+  ctx.quadraticCurveTo(x,y,x,y+radius);
+  ctx.stroke();
+}
 
 
 // === NAVIGATON =======================================================================================================================================

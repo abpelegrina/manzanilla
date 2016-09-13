@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Manzanila · Image tagger for EcoLexicon</title>
+    <title>Manzanilla · Image tagger for EcoLexicon</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -18,6 +18,38 @@
   </head>
 
   <body>
+
+
+    <div id='vpk-dialog' class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Attributes</h4>
+          </div>
+          <div class="modal-body">
+             <form class="form">
+              <div class="form-group">
+                <label for="annotation">Annotation</label>
+                <input type="text" class="form-control"  autocomplete="off" name="annotation" id="annotation" placeholder="Annotation">
+              </div>
+              <div class="form-group">
+                <label for="type">Type</label>
+                <select class="form-control" name="type" id="type">
+                    <option value="arrow">Arrow</option>
+                    <option value="color">Color</option>
+                    <option value="label">Label</option>
+                </select>
+              </div>
+             </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" id='cancel-vpk'>Cancel</button>
+            <button type="button" class="btn btn-primary" id='save-vpk'>Save VPK</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -60,6 +92,7 @@
     <div class="col-md-4"  id='tag-form'>
 
       <h4>Current annotations</h4>
+      <div class='loadinggif' id='loading'>Loading list</div>
       <div id='vpks-list' class="list-group"></div>
       <hr>
       <div class="input-group">
@@ -84,25 +117,35 @@
     <script src="js/manzanilla.js"></script>
 
     <script language=javascript>
+     
+
       $(function (){
-        var mnz = new Manzanilla();
-        mnz.aunthenticate();
 
-        //document.getElementById("the-canvas").style.background = "url('/visual/imagenes/"+$('#image').val()+"')";
+        $('#vpk-dialog').modal({'show':false});
+
         var image_path = '/visual/imagenes/' + $("#image").val();
-        
+        var mnz = new Manzanilla();
+        mnz.aunthenticate(function(err, response){
+            Manzanilla.loadImageMedium($('#id-image').val(),function(){
+
+              var sleep_time = 0;
+
+              if (typeof Manzanilla.id_layer_vpks === "undefined"){
+                console.log('Is undefined. Waiting for the id for vpks...')
+                sleep_time = 500;
+              }
 
 
-        Manzanilla.loadImageMedium($('#id-image').val(),function(){
-          new VPKS(image_path, 'the-canvas', 'canvas-container');
-          $('#the-image').attr('title', Manzanilla.medium.description);
-          $('#finish').click(function(){
-            Manzanilla.gotoMain();
-          });
+              sleep(sleep_time).then(() => {
+                new VPKS(image_path, 'the-canvas', 'canvas-container');
+                $('#the-image').attr('title', Manzanilla.medium.description);
+                $('#finish').click(function(){
+                  Manzanilla.gotoMain();
+                });
+
+              });
+            });
         });
-
-
-
 
       });
     </script>

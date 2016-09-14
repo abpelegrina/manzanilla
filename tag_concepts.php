@@ -99,6 +99,10 @@
 
       <div id='search-concept-results'></div>
 
+      <h4>Suggestions from EcoLexicon</h4>
+      <div class='loadinggif' id='loading2'>Loading suggestions</div>
+      <div id='suggestions' class="list-group"></div>
+
       <hr/>
       <div class="input-group">
         <button type="button" class="btn btn-primary" id='tag-relation'>Go to tag relations »</button>
@@ -148,8 +152,9 @@
 
           sleep(sleep_time).then(() => {
             $('#the-image').attr('title', Manzanilla.medium.description);
-             mnz.getImgConcepts();
-             mnz.setAutocompleteConcept();
+              mnz.getImgConcepts();
+              mnz.getConceptSuggestions();
+              mnz.setAutocompleteConcept();
            });
         });
        
@@ -180,6 +185,9 @@
             mnz.removeAnnotation($(this).attr('id-anno'));
           }
         });
+
+
+
 
 
         $(document.body).on('click', '.add-concept', function(event){

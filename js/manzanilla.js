@@ -222,8 +222,7 @@ Manzanilla.prototype.getImgConcepts = function(){
 			console.log('no concepts associated with the image :(')
 		}
 
-	}, {filter:{id_layer: Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});
-			
+	}, {filter:{id_layer: Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});		
 }
 
 Manzanilla.prototype.setAutocompleteConcept = function(){
@@ -359,7 +358,7 @@ Manzanilla.addAnnotationRelation = function(id_source, source, id_relation, rela
 
 Manzanilla.addRelationToAnnotationList = function(id_annotation, id_source, source, id_relation, relation, id_target, target, list_id, clase, icon){
 	var label = '<span class="relation">'+source + '</span><span class="relation">' + relation + '</span><span class="relation">' + target +'</span>';
-	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
+	$(list_id).append('<button type="button" id-source="'+id_source+'" r-target="'+target+'" id-target="'+id_target+'" r-source="'+source+'" id-relation="'+id_relation+'" r-relation="'+relation+'"  class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
 }
 
 // === GENERIC REMOVE ANNOTATION =======================================================================================================================
@@ -704,6 +703,70 @@ Manzanilla.gotoTagVPKs = function(img, id_image){
 
 Manzanilla.gotoMain = function(img, id_image){
 	window.location = 'main.html';
+}
+
+// == SUGGESTIONS ======================================================================================================================================
+
+Manzanilla.prototype.getConceptSuggestions = function(){
+	
+	Camomile.getAnnotations(function(err,response){
+		if (err){
+			showError(err);
+		} 
+		else if (response.length > 0){
+
+			$.each(response, function(key, annotation){
+				
+				var id_concept = annotation.data.id;
+				var concept = annotation.data.concept;				
+
+				$.getJSON('/puertoterm/manzanilla/concepts_suggestions.php?id='+id_concept).done(function(response2){
+					$('#loading2').hide();
+					console.log(response2);
+
+					$.each(response2, function(i, relationship){
+
+						if (relationship.source.id != id_concept)
+							Manzanilla.addConceptToList(relationship.source.id, relationship.source.concept, relationship.source.concept, '#suggestions', 'add-concept', '+');
+						if (relationship.target.id != id_concept)
+							Manzanilla.addConceptToList(relationship.target.id, relationship.target.concept, relationship.target.concept, '#suggestions', 'add-concept', '+');							
+					});
+				});
+			});
+		}
+		else {
+			console.log('no concepts associated with the image :(')
+		}
+
+	}, {filter:{id_layer: Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});		
+}
+
+Manzanilla.prototype.getRelationSuggestions = function(){
+	
+	Camomile.getAnnotations(function(err,response){
+		if (err){
+			showError(err);
+		} 
+		else if (response.length > 0){
+
+			$.each(response, function(key, annotation){
+				
+
+				$.getJSON('/puertoterm/manzanilla/concepts_suggestions.php?id='+annotation.data.id).done(function(response2){
+					$('#loading2').hide();
+					console.log(response2);
+
+					$.each(response2, function(i, relationship){
+						Manzanilla.addRelationToAnnotationList('-1', relationship.source.id, relationship.source.concept, relationship.relation.id, relationship.relation.relation,  relationship.target.id,  relationship.target.concept, '#suggestions', 'add-relation', '+');
+					});
+				});
+			});
+		}
+		else {
+			console.log('no concepts associated with the image :(')
+		}
+
+	}, {filter:{id_layer: Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});		
 }
 
 // === ERROR HANDLING ==================================================================================================================================

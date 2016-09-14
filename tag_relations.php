@@ -142,6 +142,10 @@
 
       <div id='search-concept-results'></div>
 
+      <h4>Suggestions from EcoLexicon</h4>
+      <div class='loadinggif' id='loading2'>Loading suggestions</div>
+      <div id='suggestions' class="list-group"></div>
+
       <hr/>
       <div class="input-group">
         <button type="button" class="btn btn-primary" id='tag-relation'>Go to tag VPKs »</button>
@@ -194,6 +198,7 @@
 
           sleep(sleep_time).then(() => {
             mnz.getImgRelations();
+            mnz.getRelationSuggestions();
           });
 
           mnz.setAutocompleteRelation($('#source'));
@@ -207,6 +212,29 @@
               console.log('remove annotation');
               $(this).remove();
               mnz.removeAnnotation($(this).attr('id-anno'));
+            }
+          });
+
+
+          $(document.body).on('click', '.add-relation', function(event){
+            //removeConceptAnnotation($(this));
+            console.log($(this).attr('id-anno'));
+
+            if(confirm('Do you really want to tag this relation to the image?')){
+              console.log('add annotation');
+              var that = this;
+
+              var id_source = $(this).attr('id-source');
+              var source = $(this).attr('r-source');
+              var id_relation = $(this).attr('id-relation');
+              var relation = $(this).attr('r-relation');
+              var id_target = $(this).attr('id-target');
+              var target = $(this).attr('r-target');
+
+              Manzanilla.addAnnotationRelation(id_source, source, id_relation, relation, id_target, target,function(annotation){
+                Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;');
+                $(that).remove();
+              });
             }
           });
 

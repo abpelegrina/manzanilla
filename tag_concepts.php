@@ -153,7 +153,7 @@
           sleep(sleep_time).then(() => {
             $('#the-image').attr('title', Manzanilla.medium.description);
               mnz.getImgConcepts();
-              mnz.getConceptSuggestions();
+              //mnz.getConceptSuggestions();
               mnz.setAutocompleteConcept();
            });
         });

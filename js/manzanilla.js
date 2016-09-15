@@ -768,7 +768,7 @@ Manzanilla.prototype.getRelationSuggestions = function(){
 			showError(err);
 		} 
 		else if (response.length > 0){
-			 Promise.all(
+			Promise.all(
                 response.map(function(val){                    
                 	return $.getJSON('/puertoterm/manzanilla/concepts_suggestions.php?id='+val.data.id); 
 				})
@@ -785,6 +785,54 @@ Manzanilla.prototype.getRelationSuggestions = function(){
 		}
 
 	}, {filter:{id_layer: Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});		
+}
+// === USERS' TAGS =====================================================================================================================================
+Manzanilla.prototype.loadImagesTaggedbyUser = function(){
+	var username = this.username;
+
+	var ids_layer = [];
+	ids_layer.push(Manzanilla.id_layer_concepts);
+	ids_layer.push(Manzanilla.id_layer_relations);
+	ids_layer.push(Manzanilla.id_layer_vpks);
+	ids_layer.push(Manzanilla.id_layer_categories);
+	
+
+	Promise.all(
+        ids_layer.map(function(val){                    
+        	// 57718983f9ca0a01005c0d02/annotation?id_medium=577189e2f9ca0a01005c2578
+        	return $.ajax({
+   				url: 'http://manila.ugr.es:3000/layer/'+val+'/annotation',
+				xhrFields: {
+				      withCredentials: true
+				}
+			}); 
+        	//Camomile.getAnnotations(function(err,response){annotations.concat(response)}, {filter:{id_layer: val, data:{concept:'snow'}}});
+    	})
+    ).then(function(annotations){
+     	annotations = [].concat.apply([], annotations);
+       	//console.log(annotations);
+       	var userTags = [];
+       	annotations.forEach(function(x){
+
+	    	if (typeof x.data.author !== "undefined" && x.data.author == username){
+	       		userTags.push(x.id_medium);
+	       		console.log(x);
+	       	}
+       	});
+
+       	userTags = remove_duplicates(userTags);
+       	console.log(userTags);
+
+       	userTags.forEach(function(img){
+       		Camomile.getMedium(img, function(err, response){	
+					var responseHTML = "<li><a target='_blank' href='tag_categories.php?id=" + response._id+"&img="+response.name+"'>";
+					responseHTML += "<img id='eco-image-"+response._id+"' id-image='"+response._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + response.name + "' class='img-thumbnail' title='"+  response.description+"' onerror='javascript:hideImage(this);'/></a></li>";
+					$('#concepts').append(responseHTML);
+				
+			});
+       });
+    });
+
 }
 
 // === ERROR HANDLING ==================================================================================================================================

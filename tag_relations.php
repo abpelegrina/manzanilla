@@ -34,6 +34,7 @@
           <ul class="nav navbar-nav">
             <li><a href="main.html">Home</a></li>
             <li><a href="#">Hello, <span id='greeting'>user</span></a></li> 
+             <li><a href="mine.php">My tags</a></li>
             <li><a href="tag.html">Tag image</a></li>
             <li><a href="logout.html">Log out</a></li>
             <!--li><a href="#about">About</a></li>
@@ -142,9 +143,20 @@
 
       <div id='search-concept-results'></div>
 
-      <h4>Suggestions from EcoLexicon</h4>
-      <div class='loadinggif' id='loading2'>Loading suggestions</div>
-      <div id='suggestions' class="list-group"></div>
+      <div class="panel panel-default" id="panel-suggestions">
+        <div class="panel-heading">
+          <h4  class="panel-title">
+            <a data-toggle="collapse" data-target="#collapseOne" href="#collapseOne">
+              Suggestions from EcoLexicon
+            </a>
+          </h4>
+
+        </div>
+        <div  id="collapseOne" class="panel-collapse collapse">
+          <div class='loadinggif' id='loading2'>Loading suggestions</div>
+          <div id='suggestions' class="list-group"></div>
+        </div>
+      </div>
 
       <hr/>
       <div class="input-group">
@@ -172,6 +184,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script src="config.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="js/bootstrap.min.js"></script>
@@ -188,18 +201,8 @@
         Manzanilla.loadImageMedium($('#id-image').val(),function(){
           $('#the-image').attr('title', Manzanilla.medium.description);
           
-          var sleep_time = 0;
-
-          if (typeof Manzanilla.id_layer_vpks === "undefined"){
-            console.log('Is undefined. Waiting for the id for vpks...')
-            sleep_time = 500;
-          }
-
-
-          sleep(sleep_time).then(() => {
-            mnz.getImgRelations();
-            mnz.getRelationSuggestions();
-          });
+          mnz.getImgRelations();
+          mnz.getRelationSuggestions();
 
           mnz.setAutocompleteRelation($('#source'));
           mnz.setAutocompleteRelation($('#target'));

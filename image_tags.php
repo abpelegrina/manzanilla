@@ -80,26 +80,40 @@
 
 <div class="container" id='search-container'>
   <div class="page-header">
-    <h1>Tagging image &quot;<?php echo $_GET['img']?>&quot;. <small>Tag the image with VPKs. To tag a VPK just draw a rectangle in the image and input the appropiate label.</small></h1>
+    <h1>Annotations for image &quot;<?php echo $_GET['img']?>&quot;</h1>
   </div>
 
   <div class="row">
     <div class="col-md-8">
-      <div id='canvas-container'><canvas id='the-canvas'></canvas></div>
+      <?php echo "<img  id='the-image' src='/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
+      <!--div id='canvas-container'><canvas id='the-canvas'></canvas></div-->
+
+
       <input type='hidden' name='id-image' id='id-image' value="<?php echo $_GET['id']?>"/>
       <input type='hidden' name='image' id='image' value="<?php echo $_GET['img']?>"/>
-      <!--?php echo "<img  id='the-image' src='/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?-->
+      
     </div>
     <div class="col-md-4"  id='tag-form'>
 
-      <h4>Current annotations</h4>
-      <div class='loadinggif' id='loading'>Loading list</div>
-      <div id='vpks-list' class="list-group"></div>
-      <hr>
-      <div class="input-group">
-        <button type="button" class="btn btn-primary" id='finish'>Finish tagging</button>
-      </div>
+      <a class="btn btn-large btn-info" href="tag_categories.php?img=<?php echo $_GET['img']?>&id=<?php echo $_GET['id']?>">Add or edit image annotations</a><hr/>
 
+      <h4>Current annotations</h4>
+      <div class='loadinggif' id='loading'>Loading annotations...</div>
+      <div id='annotations' style='display:none'>
+        <h5>Category:</h5>
+        <span id='category-list' class="list-group"></span>
+        <hr/>
+        <h5>Concepts:</h5>
+        <div id='concepts-list' class="list-group"></div>
+        <hr/>
+        <h5>Relations:</h5>
+        <div id='relations-list' class="list-group"></div>
+        <hr/>
+        <h5>VPKs:</h5>
+        <div id='vpks-list' class="list-group"></div>
+        <hr/>
+      </div>
+      
     </div>
   </div>
 
@@ -129,10 +143,30 @@
         var mnz = new Manzanilla();
         mnz.aunthenticate(function(err, response){
             Manzanilla.loadImageMedium($('#id-image').val(),function(){
-              new VPKS(image_path, 'the-canvas', 'canvas-container');
-              $('#the-image').attr('title', Manzanilla.medium.description);
-              $('#finish').click(function(){
-                Manzanilla.gotoMine();
+
+              
+
+              Manzanilla.getAllImagesAnnotatios($("#image").val(), function(annotations){
+                $('#loading').hide();
+
+                $('#category-list').append( '<span class="relation"> ' + annotations.category.map(function(category){ return category.data.category}).join('</span>, <span class="relation">') + '</span>');
+                $('#concepts-list').append('<span class="relation"> ' +  annotations.concepts.map(function(category){ return category.data.concept}).join('</span>, <span class="relation">') + '</span>');
+
+
+                $('#relations-list').append(annotations.relations.map(function(category){ 
+
+                                                        var label = category.data.source.concept + ' --'+ category.data.relation.relation + '--> '
+                                                                    + category.data.source.concept;
+
+                                                        VPKS.addVPKSToAnnotationList(category._id, label, '#relations-list', '', '', '');
+                                                      }));
+                $('#vpks-list').append(annotations.vpks.map(function(category){ 
+
+                                                        var label = category.data.annotation;
+
+                                                        VPKS.addVPKSToAnnotationList(category._id, label, '#vpks-list', '', '', category.data.type);
+                                                      }));
+                $('#annotations').show();
               });
             });
         });

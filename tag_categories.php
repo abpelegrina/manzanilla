@@ -34,6 +34,7 @@
           <ul class="nav navbar-nav">
             <li><a href="main.html">Home</a></li>
             <li><a href="#">Hello, <span id='greeting'>user</span></a></li> 
+             <li><a href="mine.php">My tags</a></li>
             <li><a href="tag.html">Tag image</a></li>
             <li><a href="logout.html">Log out</a></li>
             <!--li><a href="#about">About</a></li>
@@ -73,10 +74,11 @@
         </div>
 
         <input type='hidden' name='id-image' id='id-image' value="<?php echo $_GET['id']?>"/>
-         <input type='hidden' name='image' id='image' value="<?php echo $_GET['img']?>"/>
+        <input type='hidden' name='image' id='image' value="<?php echo $_GET['img']?>"/>
 
         <br/>
         <div class="input-group">
+          <button type="button" class="btn" id='exit'>Save and exit</button>&nbsp;
           <button type="button" class="btn btn-primary" id='tag-category'>Save and tag concepts »</button>
         </div>
     </div>
@@ -88,6 +90,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script src="config.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="js/bootstrap.min.js"></script>
@@ -101,32 +104,31 @@
 
         var mnz = new Manzanilla();
         mnz.aunthenticate();
+        $('#loading').show();
 
-         console.log($('#id-image').val());
+        console.log($('#id-image').val());
+
+        $('#tag-category').click(function(event){
+          $(this).prop('disabled', true);
+          mnz.tagCategory();
+        });
+
 
         Manzanilla.loadImageMedium($('#id-image').val(), function(){
-
-
           console.log(Manzanilla.medium);
 
           $('#the-image').attr('title', Manzanilla.medium.description);
-          $('#tag-category').click(function(event){
-            $(this).prop('disabled', true);
-            mnz.tagCategory();
-          });
-          
-          $('#loading').show();
-          Camomile.getAnnotations(function(err,response){
-            console.log(response);
-             $('#loading').hide();
-            if (response.length > 0){
-              var category = response[0].data.category;
+            Camomile.getAnnotations(function(err,response){
+              console.log(response);
+               $('#loading').hide();
+              if (response.length > 0){
+                var category = response[0].data.category;
 
-              console.log(category);
+                console.log(category);
 
-              $('#category').val(category);
-            }
-        }, {filter:{id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id}});
+                $('#category').val(category);
+              }
+          }, {filter:{id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id}});
       });
     });
     </script>

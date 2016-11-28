@@ -7,7 +7,8 @@ body {
 }
 
 .img-selector{
-	padding: 0px;
+	border-right: dotted 1px grey; 
+	padding-right: 0 6px 0 0; 
 }
 
 .form-signin{
@@ -58,4 +59,38 @@ span.relation{
 	padding:5px;
 	overflow:scroll-y;
 	font-family: "Courier new";
+}
+
+.panel-heading a:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e114";
+    float: right;
+    color: grey;
+}
+.panel-heading a.collapsed:after {
+    content:"\e080";
+}
+
+.over-image{
+	width: 100%;
+}
+
+.btn-xxs {
+	font-size: 12px;
+	padding: 2px;
+	margin-right: 4px;
+}
+
+/*.image-result{
+	position:relative;
+	border-right: dotted 1px grey; 
+	padding-right: 5px; 
+}*/
+
+.centered{
+	max-width: 100%; max-height: 100%; display: block; margin: 3px auto;
+}
+
+ul.list-inline li:last-child{
+	border-right: none;
 }

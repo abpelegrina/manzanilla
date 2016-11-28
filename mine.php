@@ -34,6 +34,7 @@
           <ul class="nav navbar-nav">
             <li><a href="main.html">Home</a></li>
             <li><a href="#">Hello, <span id='greeting'>user</span></a></li> 
+             <li class="active"><a href="#">My tags</a></li>
             <li><a href="tag.html">Tag image</a></li>
             <li><a href="logout.html">Log out</a></li>
             <!--li><a href="#about">About</a></li>
@@ -60,6 +61,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script src="config.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="js/bootstrap.min.js"></script>
@@ -78,17 +80,7 @@
         var image_path = '/visual/imagenes/' + $("#image").val();
         var mnz = new Manzanilla();
         mnz.aunthenticate(function(err, response){
-          var sleep_time = 0;
-
-          if (typeof Manzanilla.id_layer_vpks === "undefined"){
-            console.log('Is undefined. Waiting for the id for vpks...')
-            sleep_time = 500;
-          }
-
-          sleep(sleep_time).then(() => {
             mnz.loadImagesTaggedbyUser();
-          });
-
         });
       });
 

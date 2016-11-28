@@ -200,7 +200,8 @@
             // Manipulate objects
             items = that.grepper(that.ajax.data) || [];
             if (!items.length) {
-                return that.shown ? that.hide() : that;
+                console.log('no items');
+                items[0] = {'id': -21, 'label': "Concept not found. Click to add concept to EcoLexicon", 'title':'click here to add new concept'};
             }
 
             that.ajax.xhr = null;
@@ -231,6 +232,7 @@
                 }
                 //Bhanu added a custom message- Result not Found when no result is found
                 if (items.length == 0) {
+                    console.log('no items');
                     items[0] = {'id': -21, 'name': "Result not Found"}
                 }
                 return that.render(items.slice(0, that.options.items)).show();

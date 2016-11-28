@@ -71,13 +71,20 @@ Manzanilla.prototype.login = function(){
 }
 
 Manzanilla.prototype.getCamomileIDs = function(){
-	$.getJSON('config.json').done(function(response){
+
+	Manzanilla.id_layer_categories = config.layer_categories_id;
+	Manzanilla.id_layer_concepts = config.layer_concepts_id;
+	Manzanilla.id_layer_relations = config.layer_relations_id;
+	Manzanilla.id_layer_vpks = config.layer_vpks_id;
+	Manzanilla.id_corpus = config.corpus_id;
+
+	/*$.getJSON('config.json').done(function(response){
 		Manzanilla.id_layer_categories = response.layer_categories_id;
 		Manzanilla.id_layer_concepts = response.layer_concepts_id;
 		Manzanilla.id_layer_relations = response.layer_relations_id;
 		Manzanilla.id_layer_vpks = response.layer_vpks_id;
 		Manzanilla.id_corpus = response.corpus_id;
-	});
+	});*/
 }
 
 
@@ -114,8 +121,17 @@ Manzanilla.prototype.loadImages = function(event){
 				$.each(data.annotations, function(key, anno){
 					
 					Camomile.getMedium(anno.id_medium, function(err, response){	
-							var responseHTML = "<li class='img-selector'><a target='_blank' href='tag_categories.php?id=" + response._id+"&img="+response.name+"'>";
-							responseHTML += "<img id='eco-image-"+response._id+"' id-image='"+response._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + response.name + "' class='img-thumbnail' title='"+  response.description+"' onerror='javascript:hideImage(this);'/></a></li>";
+							var responseHTML = "<li class='img-selector'>";
+
+							responseHTML += '<div class="image-result">';
+							responseHTML += "<img id='eco-image-"+response._id+"' id-image='"+response._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + response.name + "' class='img-thumbnail centered' title='"+  response.description+"' onerror='javascript:hideImage(this);'/>";
+
+							// add buttons
+							responseHTML += '<div class="over-image">';
+							responseHTML += "<a class='btn btn-xxs btn-primary' style='display:block;float:right;margin-right:3px;' target='_blank' href='tag_categories.php?id=" + response._id+"&img="+response.name+"'>Edit tags</a>";
+							responseHTML += "<a class='btn btn-xxs btn-info'  style='display:block;float:right;' target='_blank' href='image_tags.php?id=" + response._id+"&img="+response.name+"'>View tags</a>";
+
+							responseHTML += "</div></div></li>";
 							$('#concept-'+anno.data.id).append(responseHTML);
 						
 					});
@@ -139,6 +155,51 @@ function hideImage(image){
 	console.log('hide!');
 }
 
+// === PROMISES ========================================================================================================================================
+
+Manzanilla.getCategoryPromise = function(){
+	return new Promise (function(resolve,reject) {
+		Camomile.getAnnotations(function(err,response){
+			if (err)
+				reject(err);
+			else
+				resolve(response);
+		}, {filter:{id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id}});
+	});
+}
+
+Manzanilla.getConceptsPromise = function(){
+	return new Promise (function(resolve,reject) {
+		Camomile.getAnnotations(function(err,response){
+			if (err)
+				reject(err);
+			else
+				resolve(response);
+		}, {filter:{id_layer:Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});
+	});
+}
+
+Manzanilla.getRelationsPromise = function(){
+	return new Promise (function(resolve,reject) {
+		Camomile.getAnnotations(function(err,response){
+			if (err)
+				reject(err);
+			else
+				resolve(response);
+		}, {filter:{id_layer:Manzanilla.id_layer_relations, id_medium:Manzanilla.medium._id}});
+	});
+}
+
+Manzanilla.getVPKsPromise = function(){
+	return new Promise (function(resolve,reject) {
+		Camomile.getAnnotations(function(err,response){
+			if (err)
+				reject(err);
+			else
+				resolve(response);
+		}, {filter:{id_layer:Manzanilla.id_layer_vpks, id_medium:Manzanilla.medium._id}});
+	});
+}
 
 // === GET IMAGE MEDIUM ================================================================================================================================
 Manzanilla.loadImageMedium = function(filename, callback){
@@ -155,6 +216,25 @@ Manzanilla.loadImageMedium = function(filename, callback){
 	}
 }
 
+
+Manzanilla.getAllImagesAnnotatios = function (filename, callback){
+	var data = {};
+
+	var calls = [Manzanilla.getCategoryPromise(), Manzanilla.getConceptsPromise(), Manzanilla.getRelationsPromise(), Manzanilla.getVPKsPromise(),];
+
+
+	Promise.all(calls).then(function(results){
+		data.category = results[0];
+		data.concepts = results[1];
+		data.relations = results[2];
+		data.vpks = results[3];
+		console.log(data);
+
+		callback(data);
+	});
+
+	//calback(data);
+}
 
 // === CATEGORIES ======================================================================================================================================
 Manzanilla.prototype.tagCategory = function(){
@@ -208,6 +288,7 @@ Manzanilla.prototype.tagCategory = function(){
 }
 
 
+
 // === ECOLEXICON CONCEPTS =============================================================================================================================
 Manzanilla.prototype.getImgConcepts = function(){
 	$('#loading').show();
@@ -241,16 +322,20 @@ Manzanilla.prototype.setAutocompleteConcept = function(){
 	        var data = {id:concept_data[0], concept:concept_data[1]};
 	       
 
-	        // add annotation
-			Camomile.createAnnotation(Manzanilla.id_layer_concepts, Manzanilla.medium._id, '', data, function(err2,response2){
-				if (err2) {
-					console.log('ERROR while creating annotation in Camomile: ' + err2);
-					showError(err2);
-				}
-				else {
-					Manzanilla.addConceptToAnnotationList(response2._id, response2.data.concept, '#concept-list', 'remove-concept', '&times;');
-				}
-			});
+			if (data.id == -21)
+				window.open('http://manila.ugr.es/puertoterm/concepto.php?eleccion=nuevo');
+			else {
+		        // add annotation
+				Camomile.createAnnotation(Manzanilla.id_layer_concepts, Manzanilla.medium._id, '', data, function(err2,response2){
+					if (err2) {
+						console.log('ERROR while creating annotation in Camomile: ' + err2);
+						showError(err2);
+					}
+					else {
+						Manzanilla.addConceptToAnnotationList(response2._id, response2.data.concept, '#concept-list', 'remove-concept', '&times;');
+					}
+				});
+			}
 	    },
 	    title: 'title',
 	    alignWidth: false,
@@ -266,16 +351,21 @@ Manzanilla.prototype.setAutocompleteConcept = function(){
 }
 
 Manzanilla.prototype.searchConcepts = function(term){
+	$('#no-results').hide();
 	var params = {query:term};
 	$.getJSON('/puertoterm/manzanilla/concepts_by_term.php', params).done(function(concepts){
 		$('#search-concept-results').html('');
 		$("#concept").typeahead('hide');
-		$.each(concepts,function(key, concept){
-			var concept_data = concept.id.split('||');
-			var id= concept_data[0];
-			var concepto = concept_data[1];
-			Manzanilla.addConceptToList(id, concept.label, concepto, '#search-concept-results', 'add-concept', '&plus;')
-		});
+
+		if(concepts.length > 0)
+			$.each(concepts,function(key, concept){
+				var concept_data = concept.id.split('||');
+				var id= concept_data[0];
+				var concepto = concept_data[1];
+				Manzanilla.addConceptToList(id, concept.label, concepto, '#search-concept-results', 'add-concept', '&plus;')
+			});
+		else
+			$('#no-results').show();
 	});
 }
 
@@ -712,6 +802,14 @@ Manzanilla.gotoMain = function(img, id_image){
 	window.location = 'main.html';
 }
 
+Manzanilla.gotoMine = function(img, id_image){
+	window.location = 'mine.php';
+}
+
+Manzanilla.close = function(){
+	window.close();
+}
+
 // == SUGGESTIONS ======================================================================================================================================
 
 function remove_duplicates(objectsArray) {
@@ -825,7 +923,7 @@ Manzanilla.prototype.loadImagesTaggedbyUser = function(){
 
        	userTags.forEach(function(img){
        		Camomile.getMedium(img, function(err, response){	
-					var responseHTML = "<li><a target='_blank' href='tag_categories.php?id=" + response._id+"&img="+response.name+"'>";
+					var responseHTML = "<li><a target='_blank' href='image_tags.php?id=" + response._id+"&img="+response.name+"'>";
 					responseHTML += "<img id='eco-image-"+response._id+"' id-image='"+response._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + response.name + "' class='img-thumbnail' title='"+  response.description+"' onerror='javascript:hideImage(this);'/></a></li>";
 					$('#concepts').append(responseHTML);
 				

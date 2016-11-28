@@ -34,6 +34,7 @@
           <ul class="nav navbar-nav">
             <li><a href="main.html">Home</a></li>
             <li><a href="#">Hello, <span id='greeting'>user</span></a></li>  
+            <li><a href="mine.php">My tags</a></li>
             <li><a href="tag.html">Tag image</a></li>
             <li><a href="logout.html">Log out</a></li>
             <!--li><a href="#about">About</a></li>
@@ -98,13 +99,26 @@
       </div>
 
       <div id='search-concept-results'></div>
+      <div id='no-results' style='display:none;'>No concepts found in EcoLexicon matching your search. Do you want to create the concept in EcoLexicon? <a href='http://manila.ugr.es/puertoterm/concepto.php?eleccion=nuevo' target='_blank'>Open the new concept form</a>.<hr/></div>
 
-      <h4>Suggestions from EcoLexicon</h4>
-      <div class='loadinggif' id='loading2'>Loading suggestions</div>
-      <div id='suggestions' class="list-group"></div>
+      <div class="panel panel-default" id="panel-suggestions">
+        <div class="panel-heading">
+          <h4  class="panel-title">
+            <a data-toggle="collapse" data-target="#collapseOne" href="#collapseOne">
+              Suggestions from EcoLexicon
+            </a>
+          </h4>
+
+        </div>
+        <div  id="collapseOne" class="panel-collapse collapse">
+          <div class='loadinggif' id='loading2'>Loading suggestions</div>
+          <div id='suggestions' class="list-group"></div>
+        </div>
+      </div>
 
       <hr/>
       <div class="input-group">
+        <button type="button" class="btn" id='save-and-exit'>Save and exit</button>&nbsp;
         <button type="button" class="btn btn-primary" id='tag-relation'>Go to tag relations »</button>
       </div>
 
@@ -129,10 +143,11 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script src="config.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/bootstrap-typeahead.min.js"></script>
+    <script src="js/bootstrap-typeahead.js"></script>
     <script src="js/fermata.js"></script>
     <script src="js/camomile.js"></script>
     <script src="js/manzanilla.js"></script>
@@ -141,26 +156,19 @@
       $(function (){
         var mnz = new Manzanilla();
         mnz.aunthenticate();
-        Manzanilla.loadImageMedium($('#id-image').val(),function(){
-
-           var sleep_time = 0;
-
-              if (typeof Manzanilla.id_layer_vpks === "undefined"){
-                console.log('Is undefined. Waiting for the id for concepts...')
-                sleep_time = 500;
-              }
-
-          sleep(sleep_time).then(() => {
-            $('#the-image').attr('title', Manzanilla.medium.description);
-              mnz.getImgConcepts();
-              //mnz.getConceptSuggestions();
-              mnz.setAutocompleteConcept();
-           });
+        Manzanilla.loadImageMedium($('#id-image').val(),function(){   
+          $('#the-image').attr('title', Manzanilla.medium.description);
+          mnz.getImgConcepts();
+          mnz.setAutocompleteConcept();
         });
        
 
         $('#tag-relation').click(function(){
           Manzanilla.gotoTagRelations($('#image').val(), $('#id-image').val());
+        });
+
+        $('#save-and-exit').click(function(){
+          Manzanilla.close();
         });
 
         $('#search-concept').click(function(e){
@@ -185,9 +193,6 @@
             mnz.removeAnnotation($(this).attr('id-anno'));
           }
         });
-
-
-
 
 
         $(document.body).on('click', '.add-concept', function(event){

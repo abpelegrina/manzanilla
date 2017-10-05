@@ -673,7 +673,7 @@ VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, cla
 	}
 	else if (type == 'concept'){
 		glyph = 'glyphicon-tree-conifer';
-		color = 'style="color:pink"';
+		color = 'style="color:orange"';
 	}
 
 	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'">'+
@@ -756,7 +756,7 @@ VPKS.prototype.draw = function () {
     	else if (annotation.type == 'label')
     		that.ctx.strokeStyle = "green";
     	else if (annotation.type == 'concept')
-    		that.ctx.strokeStyle = "pink";
+    		that.ctx.strokeStyle = "orange";
     	else 
     		that.ctx.strokeStyle = "red";
     	that.ctx.strokeRect(annotation.start.x, annotation.start.y, annotation.size.width, annotation.size.height);

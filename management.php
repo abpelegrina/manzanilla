@@ -130,6 +130,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script src="config.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="js/bootstrap.min.js"></script>
@@ -146,7 +147,7 @@
           var mnz = new Manzanilla();
 
           mnz.aunthenticate(function(err, response){
-            if (response.username != 'root')
+            if (response.role != 'admin')
               window.location ='index.html';
             else {
                showCorpus();
@@ -186,10 +187,10 @@
               //$('#new-user-dialog').modal('hide');
 
               Camomile.createUser($('#username').val(),$('#password').val(),'','admin', function(err, response){
+                 $('#new-user-dialog').modal('hide');
                 if (err)
                   $('#info').append('ERROR:' + err);
                 else {
-                  $('#new-user-dialog').modal('hide');
                   var id = response._id;
                   $('#users-data').append('<tr><td>'+response.username+'</td><td>'+response.role + '</td><td><button class="remove-user" id-user="'+id+'">Delete user</button></td></tr>')
                   Camomile.setCorpusPermissionsForUser(Manzanilla.id_corpus,id,3);

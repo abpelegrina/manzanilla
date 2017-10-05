@@ -39,6 +39,7 @@
                     <option value="arrow">Arrow</option>
                     <option value="color">Color</option>
                     <option value="label">Label</option>
+                    <option value="concept">Concept</option>
                 </select>
               </div>
              </form>

@@ -29,10 +29,7 @@
           </div>
           <div class="modal-body">
              <form class="form">
-              <div class="form-group">
-                <label for="annotation">Annotation</label>
-                <input type="text" class="form-control"  autocomplete="off" name="annotation" id="annotation" placeholder="Annotation">
-              </div>
+
               <div class="form-group">
                 <label for="type">Type</label>
                 <select class="form-control" name="type" id="type">
@@ -42,6 +39,19 @@
                     <option value="concept">Concept</option>
                 </select>
               </div>
+
+              <div style="display: none;" class="form-group" id='annotation_concept_container'>
+                <label for="annotation">Concept</label>
+                <input type="text" class="form-control"  autocomplete="on" name="concept" id="concept" placeholder="Concept"/>
+                <input type="hidden" name="concept_id" name="concept_id"/>
+              </div>
+
+
+              <div class="form-group" id='annotation_container'>
+                <label for="annotation">Annotation</label>
+                <input type="text" class="form-control"  autocomplete="off" name="annotation" id="annotation" placeholder="Annotation">
+              </div>
+
              </form>
           </div>
           <div class="modal-footer">
@@ -126,12 +136,25 @@
 
         $('#vpk-dialog').modal({'show':false});
 
+
+        $('#type').change(function(){
+          if ($(this).val() == 'concept'){
+            $('#annotation_concept_container').show();
+            $('#annotation_container').hide();
+          }
+          else {
+            $('#annotation_concept_container').hide();
+            $('#annotation_container').show();
+          }
+        });
+
         var image_path = '/visual/imagenes/' + $("#image").val();
         var mnz = new Manzanilla();
         mnz.aunthenticate(function(err, response){
             Manzanilla.loadImageMedium($('#id-image').val(),function(){
               new VPKS(image_path, 'the-canvas', 'canvas-container');
               $('#the-image').attr('title', Manzanilla.medium.description);
+               mnz.setAutocompleteConcept();
               $('#finish').click(function(){
                 Manzanilla.gotoMine();
               });

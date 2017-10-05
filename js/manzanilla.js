@@ -232,8 +232,6 @@ Manzanilla.getAllImagesAnnotatios = function (filename, callback){
 
 		callback(data);
 	});
-
-	//calback(data);
 }
 
 // === CATEGORIES ======================================================================================================================================
@@ -542,8 +540,12 @@ var VPKS = function(image_path, canvas_id, container_id){
 	$('#save-vpk').click(function(event){
 		$('#vpk-dialog').modal('hide');
 
-		var annotation = $('#annotation').val();
 		var type = $('#type').val();
+		var annotation = $('#annotation').val();
+
+		if (type == concept){
+			annotation = 'Concept ' + $('#concept').val();
+		}
 
 	    if (annotation != null) {
 		    var note = {
@@ -635,6 +637,7 @@ VPKS.prototype.loadAnnotations = function(){
 
 VPKS.prototype.addAnnotationVPKs = function(annotation, callback){
 
+
 	var data ={annotation: annotation.annotation, type: annotation.type, author:this.username};
 	var fragment = {start:{x: annotation.start.x, y:annotation.start.y}, size:{width:annotation.size.width, height:annotation.size.height}}
 
@@ -667,6 +670,10 @@ VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, cla
 	else if (type == 'color'){
 		glyph = 'glyphicon-tint';
 		color = 'style="color:blue"';
+	}
+	else if (type == 'concept'){
+		glyph = 'glyphicon-tree-conifer';
+		color = 'style="color:pink"';
 	}
 
 	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+annotation+'&nbsp;&nbsp;<span '+ color +' class="glyphicon '+glyph+'"  aria-hidden="true"></button>');
@@ -747,10 +754,11 @@ VPKS.prototype.draw = function () {
     		that.ctx.strokeStyle = "blue";
     	else if (annotation.type == 'label')
     		that.ctx.strokeStyle = "green";
+    	else if (annotation.type == 'concept')
+    		that.ctx.strokeStyle = "pink";
     	else 
     		that.ctx.strokeStyle = "red";
     	that.ctx.strokeRect(annotation.start.x, annotation.start.y, annotation.size.width, annotation.size.height);
-    	//roundedRect(that.ctx,annotation.start.x, annotation.start.y, annotation.size.width, annotation.size.height, 6);
     });
     that.ctx.strokeStyle = "red";
     if (this.drag) 

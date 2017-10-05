@@ -543,8 +543,8 @@ var VPKS = function(image_path, canvas_id, container_id){
 		var type = $('#type').val();
 		var annotation = $('#annotation').val();
 
-		if (type == concept){
-			annotation = 'Concept ' + $('#concept').val();
+		if (type == 'concept'){
+			annotation = 'Concept "' + $('#concept').val() + '"';
 		}
 
 	    if (annotation != null) {
@@ -676,7 +676,8 @@ VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, cla
 		color = 'style="color:pink"';
 	}
 
-	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+annotation+'&nbsp;&nbsp;<span '+ color +' class="glyphicon '+glyph+'"  aria-hidden="true"></button>');
+	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'">'+
+				'<span '+ color +' class="glyphicon '+glyph+'"  aria-hidden="true"></span>&nbsp;'+annotation+'&nbsp;&nbsp;<span class="glyphicon glyphicon-remove remove-vpk"  aria-hidden="true"></span></button>');
 }
 
 // --- Canvas drawing ------------

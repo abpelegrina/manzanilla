@@ -94,3 +94,8 @@ span.relation{
 ul.list-inline li:last-child{
 	border-right: none;
 }
+
+
+.remove-vpk{
+	float: right;
+}

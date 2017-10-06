@@ -154,7 +154,7 @@
             Manzanilla.loadImageMedium($('#id-image').val(),function(){
               new VPKS(image_path, 'the-canvas', 'canvas-container');
               $('#the-image').attr('title', Manzanilla.medium.description);
-               mnz.setAutocompleteConcept();
+               mnz.setAutocompleteConceptVPK();
               $('#finish').click(function(){
                 Manzanilla.gotoMine();
               });

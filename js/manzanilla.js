@@ -348,6 +348,31 @@ Manzanilla.prototype.setAutocompleteConcept = function(){
 	});
 }
 
+
+Manzanilla.prototype.setAutocompleteConceptVPK = function(){
+	$("#concept").typeahead({
+	    onSelect: function(item) {
+
+	        var concept_data = item.value.split('||');
+
+	        var data = {id:concept_data[0], concept:concept_data[1]};
+	       
+
+			$('#concept_id').val(data.id);
+	    },
+	    title: 'title',
+	    alignWidth: false,
+	    ajax: {
+	        url: "/puertoterm/manzanilla/concepts_by_term.php",
+	        displayField: "label",
+	        loadingClass: 'loadinggif',
+	        timeout: 200,
+	        triggerLength: 3,
+	        method: "get"
+	    }
+	});
+}
+
 Manzanilla.prototype.searchConcepts = function(term){
 	$('#no-results').hide();
 	var params = {query:term};
@@ -938,6 +963,30 @@ Manzanilla.prototype.loadImagesTaggedbyUser = function(){
 				
 			});
        });
+    });
+
+}
+
+
+Manzanilla.prototype.loadEvalImages = function(imgs){
+    Promise.all(
+        imgs.map(function(img){                    
+        	Camomile.getMedia(
+        		function(err, response){
+        			console.log(response);
+
+        			response.forEach(function(img){
+        				var responseHTML = "<li><a target='_blank' href='evaluation.php?id=" + img._id+"&img="+img.name+"'>";
+						responseHTML += "<img id='eco-image-"+img._id+"' id-image='"+img._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + img.name + "' class='img-thumbnail' title='"+  img.description+"' onerror='javascript:hideImage(this);'/></a></li>";
+						$('#concepts').append(responseHTML);
+        			});
+
+        		}
+
+        	,{filter:{name:img,id_corpus:Manzanilla.id_corpus}});
+    	})
+    ).then(function(images){
+    	console.log('all images loaded');
     });
 
 }

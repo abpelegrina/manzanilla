@@ -201,6 +201,17 @@ Manzanilla.getVPKsPromise = function(){
 	});
 }
 
+Manzanilla.getGroupUsers = function(){
+	return new Promise (function(resolve,reject) {
+		Camomile.getGroup(config.id_user_group, function(err,response){
+			if (err)
+				reject(err);
+			else
+				resolve(response);
+		});
+	});
+}
+
 // === GET IMAGE MEDIUM ================================================================================================================================
 Manzanilla.loadImageMedium = function(filename, callback){
 	
@@ -224,6 +235,9 @@ Manzanilla.getAllImagesAnnotatios = function (filename, callback){
 
 
 	Promise.all(calls).then(function(results){
+
+
+
 		data.category = results[0];
 		data.concepts = results[1];
 		data.relations = results[2];
@@ -234,14 +248,79 @@ Manzanilla.getAllImagesAnnotatios = function (filename, callback){
 	});
 }
 
+Manzanilla.getAllImagesAnnotationsByUser = function (filename, callback){
+	var data = {};
+
+	var calls = [Manzanilla.getCategoryPromise(), Manzanilla.getConceptsPromise(), Manzanilla.getRelationsPromise(), Manzanilla.getVPKsPromise()];
+
+
+	Promise.all(calls).then(function(results){
+
+
+		$.each(results[0], function(key,annotation){
+			
+			if (typeof(annotation.data.author) !== 'undefined'){
+
+				if (typeof(data[annotation.data.author]) == 'undefined')
+					data[annotation.data.author] = {};
+
+				if (typeof(data[annotation.data.author].category) == 'undefined')
+					data[annotation.data.author].category = [];
+
+				data[annotation.data.author].category.push(annotation);
+			}
+		});
+
+		$.each(results[1], function(key,annotation){
+			if (typeof(annotation.data.author) !== 'undefined'){
+				if (typeof(data[annotation.data.author]) == 'undefined')
+					data[annotation.data.author] = {};
+
+				if (typeof(data[annotation.data.author].concepts) == 'undefined')
+					data[annotation.data.author].concepts = [];
+				data[annotation.data.author].concepts.push(annotation);
+			}
+		});
+
+		$.each(results[2], function(key,annotation){
+			if (typeof(annotation.data.author) !== 'undefined'){
+				if (typeof(data[annotation.data.author]) == 'undefined')
+					data[annotation.data.author] = {};
+
+				if (typeof(data[annotation.data.author].relations) == 'undefined')
+					data[annotation.data.author].relations = [];
+				data[annotation.data.author].relations.push(annotation);
+			}
+		});
+
+		$.each(results[3], function(key,annotation){
+			if (typeof(annotation.data.author) !== 'undefined'){
+				if (typeof(data[annotation.data.author]) == 'undefined')
+					data[annotation.data.author] = {};
+
+				if (typeof(data[annotation.data.author].vpks) == 'undefined')
+					data[annotation.data.author].vpks = [];
+				data[annotation.data.author].vpks.push(annotation);
+			}
+		});
+
+		console.log(data);
+
+		callback(data);
+	});
+}
+
+
 // === CATEGORIES ======================================================================================================================================
-Manzanilla.prototype.tagCategory = function(){
+Manzanilla.prototype.tagCategory = function(eval=false){
 	
 
 	var img = $('#image').val();
 	var id_image = $('#id-image').val();
 	var category = $('#category').val();
-	var data = {category:category, author:this.username};
+	var data = {category:category, author:this.username, id_author:this.user_id};
+
+	var that = this;
 
 	Camomile.getAnnotations(function(err,response){
 		if (err){
@@ -249,8 +328,7 @@ Manzanilla.prototype.tagCategory = function(){
 			showError(err);
 		}
 		else {
-			if (response.length > 0){
-				// actaulizamos la anotación
+			if (response.length > 0 && response[0].data.author == that.username){
 				var annotation = response[0];
 
 				if (annotation.data.category != category){
@@ -261,12 +339,12 @@ Manzanilla.prototype.tagCategory = function(){
 							showError(err2);
 						}
 						else {
-							Manzanilla.gotoTagConcepts(img, id_image);
+							Manzanilla.gotoTagConcepts(img, id_image, eval);
 						}
 					});
 				}
 				else 
-					Manzanilla.gotoTagConcepts(img, id_image);
+					Manzanilla.gotoTagConcepts(img, id_image, eval);
 			}
 			else {
 				// creamos nueva anotación
@@ -277,7 +355,7 @@ Manzanilla.prototype.tagCategory = function(){
 					}
 					else {
 						console.log(response2);
-						Manzanilla.gotoTagConcepts(img, id_image);
+						Manzanilla.gotoTagConcepts(img, id_image, eval );
 					}
 				});
 			}
@@ -288,7 +366,7 @@ Manzanilla.prototype.tagCategory = function(){
 
 
 // === ECOLEXICON CONCEPTS =============================================================================================================================
-Manzanilla.prototype.getImgConcepts = function(){
+Manzanilla.prototype.getImgConcepts = function(filter_author = false){
 	$('#loading').show();
 	var that = this;
 	Camomile.getAnnotations(function(err,response){
@@ -299,7 +377,10 @@ Manzanilla.prototype.getImgConcepts = function(){
 		else if (response.length > 0){
 			console.log(response);
 			$.each(response, function(key, annotation){
-				Manzanilla.addConceptToAnnotationList(annotation._id, annotation.data.concept,'#concept-list', 'remove-concept', '&times;');
+
+				if (!filter_author || annotation.data.author == that.username){
+					Manzanilla.addConceptToAnnotationList(annotation._id, annotation.data.concept,'#concept-list', 'remove-concept', '&times;');
+				}
 			});
 
 			that.getConceptSuggestions(response);
@@ -312,12 +393,13 @@ Manzanilla.prototype.getImgConcepts = function(){
 }
 
 Manzanilla.prototype.setAutocompleteConcept = function(){
+	var that = this;
 	$("#concept").typeahead({
 	    onSelect: function(item) {
 
 	        var concept_data = item.value.split('||');
 
-	        var data = {id:concept_data[0], concept:concept_data[1]};
+	        var data = {id:concept_data[0], concept:concept_data[1], author:that.username, id_author:that.user_id};
 	       
 
 			if (data.id == -21)
@@ -350,12 +432,13 @@ Manzanilla.prototype.setAutocompleteConcept = function(){
 
 
 Manzanilla.prototype.setAutocompleteConceptVPK = function(){
+	var that = this;
 	$("#concept").typeahead({
 	    onSelect: function(item) {
 
 	        var concept_data = item.value.split('||');
 
-	        var data = {id:concept_data[0], concept:concept_data[1]};
+	        var data = {id:concept_data[0], concept:concept_data[1], author:that.username, id_author:that.user_id};
 	       
 
 			$('#concept_id').val(data.id);
@@ -394,7 +477,7 @@ Manzanilla.prototype.searchConcepts = function(term){
 
 Manzanilla.prototype.addAnnotationConcept = function(id_concept, concept){
 
-	var data ={id:id_concept, concept:concept, author:this.username};
+	var data ={id:id_concept, concept:concept, author:this.username, id_author:this.user_id};
 
 	// add annotation
 	Camomile.createAnnotation(Manzanilla.id_layer_concepts, Manzanilla.medium._id, '', data, function(err2,response2){
@@ -417,7 +500,8 @@ Manzanilla.addConceptToList = function(id, label, concept, list_id, clase, icon)
 }
 
 // === ECOLEXICON RELATIONS ============================================================================================================================ 
-Manzanilla.prototype.getImgRelations = function(){
+Manzanilla.prototype.getImgRelations = function(filter_author = false){
+	var that=this;
 	$('#loading').show();
 	Camomile.getAnnotations(function(err,response){
 		$('#loading').hide();
@@ -426,7 +510,9 @@ Manzanilla.prototype.getImgRelations = function(){
 		} 
 		else if (response.length > 0){
 			$.each(response, function(key, annotation){
-				Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;');
+				console.log(annotation);
+				if (!filter_author || annotation.data.author == that.username)
+					Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;');
 			});
 		}
 		else {
@@ -463,7 +549,54 @@ Manzanilla.prototype.setAutocompleteRelation = function(target){
 
 Manzanilla.addAnnotationRelation = function(id_source, source, id_relation, relation, id_target, target, callback){
 
-	var data ={ source: {id:id_source, concept:source}, relation:{id:id_relation, relation:relation}, target:{id:id_target, concept:target}, author:this.username};
+	var data = { 
+		source: {
+			id:id_source, 
+			concept:source
+		},    
+		relation:{
+			id:id_relation, 
+			relation:relation
+		},
+		target:{
+			id:id_target, 
+			concept:target
+		}
+	};
+
+	console.log(data);
+
+	Camomile.createAnnotation(Manzanilla.id_layer_relations, Manzanilla.medium._id, '', data, function(err,response){
+		if (err) {
+			console.log('ERROR while creating annotation in Camomile: ' + err);
+			showError(err);
+		}
+		else {
+			callback(response);
+		}
+	});
+}
+
+
+Manzanilla.prototype.addAnnotationRelation = function(id_source, source, id_relation, relation, id_target, target, callback){
+
+	var data = { 
+		source: {
+			id:id_source, 
+			concept:source
+		},    
+		relation:{
+			id:id_relation, 
+			relation:relation
+		},
+		target:{
+			id:id_target, 
+			concept:target
+		},
+
+		author:this.username, id_author:this.user_id};
+
+	console.log(data);
 
 	Camomile.createAnnotation(Manzanilla.id_layer_relations, Manzanilla.medium._id, '', data, function(err,response){
 		if (err) {
@@ -504,7 +637,7 @@ Manzanilla.removeAnnotation = function(id){
 }
 
 // === VPKS ============================================================================================================================================
-var VPKS = function(image_path, canvas_id, container_id){
+var VPKS = function(image_path, canvas_id, container_id, username='', filter_author=false){
 
 	/*	List of annotations. Structure of annotation:		
 		var annotation = {
@@ -522,12 +655,13 @@ var VPKS = function(image_path, canvas_id, container_id){
     this.drag = false;
     this.container = container_id;
     this.selected = '';
+    this.username = username;
 
     this.img = new Image(); 
     var that = this;
 	this.img.addEventListener("load", function(){that.drawImage()}, false);
 	this.img.src = image_path;
-	this.init();
+	this.init(filter_author);
 
 	$(document.body).on('mouseover', '.vpks-list', function(event){
 		var id_anno = $(event.target).attr('id-anno');
@@ -619,7 +753,7 @@ var VPKS = function(image_path, canvas_id, container_id){
 
 // --- Dealing with Camomile -----
 
-VPKS.prototype.loadAnnotations = function(){
+VPKS.prototype.loadAnnotations = function(filter_author=false){
 	var that = this;
 
 	$('#loading').show();
@@ -633,19 +767,19 @@ VPKS.prototype.loadAnnotations = function(){
 
 			$('#loading').hide();
 			$.each(response, function(key, annotation){
-				var entry = {};
-				entry.id = annotation._id;
-				entry.start = annotation.fragment.start;
-				entry.size = annotation.fragment.size;
-				entry.annotation = annotation.data.annotation;
-				entry.type = annotation.data.type;
 
-				that.annotations.push(entry);
-				
 				console.log(annotation);
-				VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;', annotation.data.type);
 
-
+				if (!filter_author || annotation.data.author == that.username){
+					var entry = {};
+					entry.id = annotation._id;
+					entry.start = annotation.fragment.start;
+					entry.size = annotation.fragment.size;
+					entry.annotation = annotation.data.annotation;
+					entry.type = annotation.data.type;
+					that.annotations.push(entry);
+					VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;', annotation.data.type);
+				}
 				//
 				//Manzanilla.removeAnnotation(annotation._id);
 			});
@@ -663,8 +797,10 @@ VPKS.prototype.loadAnnotations = function(){
 VPKS.prototype.addAnnotationVPKs = function(annotation, callback){
 
 
-	var data ={annotation: annotation.annotation, type: annotation.type, author:this.username};
-	var fragment = {start:{x: annotation.start.x, y:annotation.start.y}, size:{width:annotation.size.width, height:annotation.size.height}}
+	var data ={annotation: annotation.annotation, type: annotation.type, author:this.username, id_author:this.user_id};
+	var fragment = {start:{x: annotation.start.x, y:annotation.start.y}, size:{width:annotation.size.width, height:annotation.size.height}};
+
+	console.log(data);
 
 	Camomile.createAnnotation(Manzanilla.id_layer_vpks, Manzanilla.medium._id, fragment, data, function(err,response){
 		if (err) {
@@ -792,10 +928,10 @@ VPKS.prototype.draw = function () {
     	//roundedRect(that.ctx, this.rect.startX, this.rect.startY, this.rect.w, this.rect.h, 6);
 }
 
-VPKS.prototype.init = function() {
+VPKS.prototype.init = function(filter_author=false) {
 	var that = this;
 
-	this.loadAnnotations();
+	this.loadAnnotations(filter_author);
 
     this.canvas.addEventListener('mousedown', function(e){that.mouseDown(e);}, false);
     this.canvas.addEventListener('mouseup',   function(e){that.mouseUp(e);},   false);
@@ -820,16 +956,27 @@ function roundedRect(ctx,x,y,width,height,radius){
 
 
 // === NAVIGATON =======================================================================================================================================
-Manzanilla.gotoTagConcepts = function(img, id_image){
-	window.location = 'tag_concepts.php?img=' + img + '&id=' + id_image+ '&success=ok';
+Manzanilla.gotoTagConcepts = function(img, id_image, eval=false){
+
+	var eval_sufix = '_eval';
+	if (!eval)
+		eval_sufix = '';
+	window.location = 'tag_concepts'+ eval_sufix +'.php?img=' + img + '&id=' + id_image+ '&success=ok';
+
 }
 
-Manzanilla.gotoTagRelations = function(img, id_image){
-	window.location = 'tag_relations.php?img=' + img + '&id=' + id_image;
+Manzanilla.gotoTagRelations = function(img, id_image, eval=false){
+	var eval_sufix = '_eval';
+	if (!eval)
+		eval_sufix = '';
+	window.location = 'tag_relations'+ eval_sufix +'.php?img=' + img + '&id=' + id_image;
 }
 
-Manzanilla.gotoTagVPKs = function(img, id_image){
-	window.location = 'tag_vpks.php?img=' + img + '&id=' + id_image;
+Manzanilla.gotoTagVPKs = function(img, id_image, eval=false){
+	var eval_sufix = '_eval';
+	if (!eval)
+		eval_sufix = '';
+	window.location = 'tag_vpks'+ eval_sufix +'.php?img=' + img + '&id=' + id_image;
 }
 
 Manzanilla.gotoMain = function(img, id_image){
@@ -968,6 +1115,8 @@ Manzanilla.prototype.loadImagesTaggedbyUser = function(){
 }
 
 
+// === TOOL EVALUATION =================================================================================================================================
+
 Manzanilla.prototype.loadEvalImages = function(imgs){
     Promise.all(
         imgs.map(function(img){                    
@@ -976,7 +1125,7 @@ Manzanilla.prototype.loadEvalImages = function(imgs){
         			console.log(response);
 
         			response.forEach(function(img){
-        				var responseHTML = "<li><a target='_blank' href='evaluation.php?id=" + img._id+"&img="+img.name+"'>";
+        				var responseHTML = "<li><a target='_blank' href='tag_categories_eval.php?id=" + img._id+"&img="+img.name+"'>";
 						responseHTML += "<img id='eco-image-"+img._id+"' id-image='"+img._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + img.name + "' class='img-thumbnail' title='"+  img.description+"' onerror='javascript:hideImage(this);'/></a></li>";
 						$('#concepts').append(responseHTML);
         			});
@@ -988,6 +1137,33 @@ Manzanilla.prototype.loadEvalImages = function(imgs){
     ).then(function(images){
     	console.log('all images loaded');
     });
+}
+
+
+Manzanilla.prototype.loadResultImages  = function(imgs){
+    Promise.all(
+        imgs.map(function(img){                    
+        	Camomile.getMedia(
+        		function(err, response){
+        			console.log(response);
+
+        			response.forEach(function(img){
+        				var responseHTML = "<li><a target='_blank' href='all_tags.php?id=" + img._id+"&img="+img.name+"'>";
+						responseHTML += "<img id='eco-image-"+img._id+"' id-image='"+img._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + img.name + "' class='img-thumbnail' title='"+  img.description+"' onerror='javascript:hideImage(this);'/></a></li>";
+						$('#concepts').append(responseHTML);
+        			});
+
+        		}
+
+        	,{filter:{name:img,id_corpus:Manzanilla.id_corpus}});
+    	})
+    ).then(function(images){
+    	console.log('all images loaded');
+    });
+}
+
+
+Manzanilla.prototype.getAllTags = function(){
 
 }
 

@@ -152,7 +152,7 @@
         var mnz = new Manzanilla();
         mnz.aunthenticate(function(err, response){
             Manzanilla.loadImageMedium($('#id-image').val(),function(){
-              new VPKS(image_path, 'the-canvas', 'canvas-container');
+              new VPKS(image_path, 'the-canvas', 'canvas-container', mnz.username);
               $('#the-image').attr('title', Manzanilla.medium.description);
                mnz.setAutocompleteConceptVPK();
               $('#finish').click(function(){

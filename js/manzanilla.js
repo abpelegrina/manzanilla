@@ -322,43 +322,44 @@ Manzanilla.prototype.tagCategory = function(eval=false){
 
 	var that = this;
 
+	if (category == 'none') return;
+
 	Camomile.getAnnotations(function(err,response){
 		if (err){
 			console.log('ERROR:' + err);
 			showError(err);
 		}
-		else {
-			if (response.length > 0 && response[0].data.author == that.username){
-				var annotation = response[0];
+		else if (response.length > 0 ){
+				
+			$.each(response, function(key, annotation){
 
-				if (annotation.data.category != category){
+				if (annotation.data.author == that.username && annotation.data.category != category){
 					
 					Camomile.updateAnnotation(annotation._id, {data:data}, function(err2,response2){
 						if (err2){
 							console.log('ERROR while updating annotation in Camomile: ' + err2);
 							showError(err2);
 						}
-						else {
+						else 
 							Manzanilla.gotoTagConcepts(img, id_image, eval);
-						}
 					});
-				}
+				} 
 				else 
 					Manzanilla.gotoTagConcepts(img, id_image, eval);
-			}
-			else {
-				// creamos nueva anotación
-				Camomile.createAnnotation(Manzanilla.id_layer_categories, Manzanilla.medium._id, '', data, function(err2,response2){
-					if (err2) {
-						console.log('ERROR while creating annotation in Camomile: ' + err2);
-						showError(err2);
-					}
-					else {
-						console.log(response2);
-						Manzanilla.gotoTagConcepts(img, id_image, eval );
-					}
-				});
-			}
+			});
+		}
+		else {
+			// creamos nueva anotación
+			Camomile.createAnnotation(Manzanilla.id_layer_categories, Manzanilla.medium._id, '', data, function(err2,response2){
+				if (err2) {
+					console.log('ERROR while creating annotation in Camomile: ' + err2);
+					showError(err2);
+				}
+				else {
+					console.log(response2);
+					Manzanilla.gotoTagConcepts(img, id_image, eval );
+				}
+			});
 		}
 	}, {filter:{id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id}});
 }
@@ -837,8 +838,12 @@ VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, cla
 		color = 'style="color:orange"';
 	}
 
+
+	if (icon != '')
+		icon = '&nbsp;&nbsp;<span class="glyphicon glyphicon-remove remove-vpk"  aria-hidden="true"></span>';
+
 	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'">'+
-				'<span '+ color +' class="glyphicon '+glyph+'"  aria-hidden="true"></span>&nbsp;'+annotation+'&nbsp;&nbsp;<span class="glyphicon glyphicon-remove remove-vpk"  aria-hidden="true"></span></button>');
+				'<span '+ color +' class="glyphicon '+glyph+'"  aria-hidden="true"></span>&nbsp;'+annotation + icon +'</button>');
 }
 
 // --- Canvas drawing ------------

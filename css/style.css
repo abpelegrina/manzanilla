@@ -35,7 +35,7 @@ body {
 span.relation{
 	border: solid #ddd 1px;
 	padding: 4px;
-	margin: 0 4px;
+	margin: 4px 4px;
 	height: 100%;
 }
 

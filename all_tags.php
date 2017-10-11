@@ -151,20 +151,20 @@
                 $.each(results, function(username, annotations){
 
                   if (typeof(annotations.category) !== 'undefined'){
-                    $('#category-list').append('<span><strong>' + username + '</strong></span>');
+                    $('#category-list').append('<br/><span><strong>' + username + ':</strong></span>');
                     $('#category-list').append( '<span class="relation"> ' + annotations.category.map(function(category){ return category.data.category}).join('</span>, <span class="relation">') + '</span>');
                     $('#category-list').append('<br/>');
                   }
 
 
                   if (typeof(annotations.concepts) !== 'undefined'){
-                    $('#concepts-list').append('<span><strong>' + username + '</strong></span>');
+                    $('#concepts-list').append('<br/><span><strong>' + username + ':</strong></span>');
                     $('#concepts-list').append('<span class="relation"> ' +  annotations.concepts.map(function(category){ return category.data.concept}).join('</span>, <span class="relation">') + '</span>');
                     $('#concepts-list').append('<br/>');
                   }
 
                   if (typeof(annotations.relations) !== 'undefined'){
-                    $('#relations-list').append('<span><strong>' + username + '</strong></span>');
+                    $('#relations-list').append('<div><span><strong>' + username + ':</strong></span>');
                     $('#relations-list').append(annotations.relations.map(function(category){ 
 
                                                             var label = category.data.source.concept + ' --'+ category.data.relation.relation + '--> '
@@ -172,11 +172,11 @@
 
                                                             VPKS.addVPKSToAnnotationList(category._id, label, '#relations-list', '', '', '');
                                                           }));
-                    $('#relations-list').append('<br/>');
+                    $('#relations-list').append('<br/></div>');
                   }
 
                   if (typeof(annotations.vpks) !== 'undefined'){
-                    $('#vpks-list').append('<span><strong>' + username + '</strong></span>');
+                    $('#vpks-list').append('<span><strong>' + username + ':</strong></span>');
                     $('#vpks-list').append(annotations.vpks.map(function(category){ 
 
                                                             var label = category.data.annotation;

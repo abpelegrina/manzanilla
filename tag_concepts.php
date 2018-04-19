@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Manzanilla · Image tagger for EcoLexicon</title>
+    <title>Manzanilla · Tag concepts</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -53,10 +53,11 @@
 
 
   <?php
-  if ($_GET['success'] == 'ok')
+  if ($_GET['success'] == 'ok'){
     echo '<div class="alert alert-success alert-dismissible fade in" role="alert">';
     echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>';
     echo '<span class="glyphicon glyphicon-saved" aria-hidden="true"></span>&nbsp;Image category annotation saved!</div>';
+  }
   ?>
 
 

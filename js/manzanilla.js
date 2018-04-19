@@ -41,7 +41,7 @@ Manzanilla.prototype.aunthenticate  = function(callback){
 	Camomile.me(function(err, response){
 		
 		if (err){
-			window.location = 'index.html';
+			window.location = '/apis/manzanilla/index.html';
 		} 
 		else {
 
@@ -63,10 +63,13 @@ Manzanilla.prototype.login = function(){
 
 	if (username != '' && password != '')
 		Camomile.login(username, password, function(err,response){
+
+
+			console.log(err,response);
 			if (err)
-				window.location = 'index.html';
+				window.location = '/apis/manzanilla/index.html';
 			else
-				window.location = 'main.html';
+				window.location = '/apis/manzanilla/main.html';
 		});
 }
 
@@ -77,14 +80,9 @@ Manzanilla.prototype.getCamomileIDs = function(){
 	Manzanilla.id_layer_relations = config.layer_relations_id;
 	Manzanilla.id_layer_vpks = config.layer_vpks_id;
 	Manzanilla.id_corpus = config.corpus_id;
+	Manzanilla.layer_suggestions = config.layer_suggestions;
 
-	/*$.getJSON('config.json').done(function(response){
-		Manzanilla.id_layer_categories = response.layer_categories_id;
-		Manzanilla.id_layer_concepts = response.layer_concepts_id;
-		Manzanilla.id_layer_relations = response.layer_relations_id;
-		Manzanilla.id_layer_vpks = response.layer_vpks_id;
-		Manzanilla.id_corpus = response.corpus_id;
-	});*/
+	
 }
 
 
@@ -157,47 +155,95 @@ function hideImage(image){
 
 // === PROMISES ========================================================================================================================================
 
-Manzanilla.getCategoryPromise = function(){
+Manzanilla.getCategoryPromise = function(filterByImg = true){
+
+	var filter; 
+	if (filterByImg)
+		filter =  {id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id};
+	else
+		filter =  {id_layer:Manzanilla.id_layer_categories};
+
+
 	return new Promise (function(resolve,reject) {
 		Camomile.getAnnotations(function(err,response){
 			if (err)
 				reject(err);
 			else
 				resolve(response);
-		}, {filter:{id_layer:Manzanilla.id_layer_categories, id_medium:Manzanilla.medium._id}});
+		}, {filter:filter});
 	});
 }
 
-Manzanilla.getConceptsPromise = function(){
+Manzanilla.getConceptsPromise = function(filterByImg = true){
+
+	var filter; 
+	if (filterByImg)
+		filter =  {id_layer:Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id};
+	else
+		filter =  {id_layer:Manzanilla.id_layer_concepts};
+
 	return new Promise (function(resolve,reject) {
 		Camomile.getAnnotations(function(err,response){
 			if (err)
 				reject(err);
 			else
 				resolve(response);
-		}, {filter:{id_layer:Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});
+		}, {filter: filter});
 	});
 }
 
-Manzanilla.getRelationsPromise = function(){
+Manzanilla.getRelationsPromise = function(filterByImg = true){
+
+	var filter; 
+	if (filterByImg)
+		filter =  {id_layer:Manzanilla.id_layer_relations, id_medium:Manzanilla.medium._id};
+	else
+		filter =  {id_layer:Manzanilla.id_layer_relations};
+
 	return new Promise (function(resolve,reject) {
 		Camomile.getAnnotations(function(err,response){
 			if (err)
 				reject(err);
 			else
 				resolve(response);
-		}, {filter:{id_layer:Manzanilla.id_layer_relations, id_medium:Manzanilla.medium._id}});
+		}, {filter:filter});
 	});
 }
 
-Manzanilla.getVPKsPromise = function(){
+Manzanilla.getVPKsPromise = function(filterByImg = true){
+
+
+	var filter; 
+	if (filterByImg)
+		filter =  {id_layer:Manzanilla.id_layer_vpks, id_medium:Manzanilla.medium._id};
+	else
+		filter =  {id_layer:Manzanilla.id_layer_vpks};
+
 	return new Promise (function(resolve,reject) {
 		Camomile.getAnnotations(function(err,response){
 			if (err)
 				reject(err);
 			else
 				resolve(response);
-		}, {filter:{id_layer:Manzanilla.id_layer_vpks, id_medium:Manzanilla.medium._id}});
+		}, {filter: filter});
+	});
+}
+
+Manzanilla.getImgId = function(filename){
+
+
+	var filter = {name: filename, id_corpus:Manzanilla.id_corpus}
+
+	return new Promise (function(resolve,reject) {
+		Camomile.getMedia(function(err,response){
+
+			if (err)
+				reject(err);
+			else{
+				console.log('"'+response[0]._id+ '": "' +filename + '",');
+				resolve(response);
+			}
+		}, {filter: filter});
 	});
 }
 
@@ -249,6 +295,8 @@ Manzanilla.getAllImagesAnnotatios = function (filename, callback){
 }
 
 Manzanilla.getAllImagesAnnotationsByUser = function (filename, callback){
+
+	
 	var data = {};
 
 	var calls = [Manzanilla.getCategoryPromise(), Manzanilla.getConceptsPromise(), Manzanilla.getRelationsPromise(), Manzanilla.getVPKsPromise()];
@@ -311,8 +359,82 @@ Manzanilla.getAllImagesAnnotationsByUser = function (filename, callback){
 }
 
 
+Manzanilla.getResults = function (callback){
+
+	
+	var data = {};
+
+	var calls = [Manzanilla.getCategoryPromise(false), Manzanilla.getConceptsPromise(false), Manzanilla.getRelationsPromise(false), Manzanilla.getVPKsPromise(false)];
+
+
+	Promise.all(calls).then(function(results){
+
+
+		$.each(results[0], function(key,annotation){
+			
+			if (typeof(annotation.id_medium) !== 'undefined'){
+
+				if (typeof(data[annotation.id_medium]) == 'undefined')
+					data[annotation.id_medium] = {};
+
+				if (typeof(data[annotation.id_medium].category) == 'undefined')
+					data[annotation.id_medium].category = [];
+
+				data[annotation.id_medium].category.push(annotation);
+			}
+		});
+
+
+		$.each(results[1], function(key,annotation){
+			
+			if (typeof(annotation.id_medium) !== 'undefined'){
+
+				if (typeof(data[annotation.id_medium]) == 'undefined')
+					data[annotation.id_medium] = {};
+
+				if (typeof(data[annotation.id_medium].concepts) == 'undefined')
+					data[annotation.id_medium].concepts = [];
+
+				data[annotation.id_medium].concepts.push(annotation);
+			}
+		});
+
+
+		$.each(results[2], function(key,annotation){
+			
+			if (typeof(annotation.id_medium) !== 'undefined'){
+
+				if (typeof(data[annotation.id_medium]) == 'undefined')
+					data[annotation.id_medium] = {};
+
+				if (typeof(data[annotation.id_medium].relations) == 'undefined')
+					data[annotation.id_medium].relations = [];
+
+				data[annotation.id_medium].relations.push(annotation);
+			}
+		});
+
+		$.each(results[3], function(key,annotation){
+			
+			if (typeof(annotation.id_medium) !== 'undefined'){
+
+				if (typeof(data[annotation.id_medium]) == 'undefined')
+					data[annotation.id_medium] = {};
+
+				if (typeof(data[annotation.id_medium].vpks) == 'undefined')
+					data[annotation.id_medium].vpks = [];
+
+				data[annotation.id_medium].vpks.push(annotation);
+			}
+		});
+
+		callback(data);
+	});
+}
+
+
 // === CATEGORIES ======================================================================================================================================
-Manzanilla.prototype.tagCategory = function(eval=false){
+Manzanilla.prototype.tagCategory = function(eval=false, practice=false){
 	
 
 	var img = $('#image').val();
@@ -341,11 +463,11 @@ Manzanilla.prototype.tagCategory = function(eval=false){
 							showError(err2);
 						}
 						else 
-							Manzanilla.gotoTagConcepts(img, id_image, eval);
+							Manzanilla.gotoTagConcepts(img, id_image, eval, practice);
 					});
 				} 
 				else 
-					Manzanilla.gotoTagConcepts(img, id_image, eval);
+					Manzanilla.gotoTagConcepts(img, id_image, eval, practice);
 			});
 		}
 		else {
@@ -357,7 +479,7 @@ Manzanilla.prototype.tagCategory = function(eval=false){
 				}
 				else {
 					console.log(response2);
-					Manzanilla.gotoTagConcepts(img, id_image, eval );
+					Manzanilla.gotoTagConcepts(img, id_image, eval, practice);
 				}
 			});
 		}
@@ -386,9 +508,15 @@ Manzanilla.prototype.getImgConcepts = function(filter_author = false){
 
 			that.getConceptSuggestions(response);
 		}
-		else {
-			console.log('no concepts associated with the image :(')
+		else if(filter_author) {
+			
+
+			Camomile.getAnnotations(function(err,response2){
+				that.getConceptSuggestions(response2, true);
+			}, {filter:{id_layer: Manzanilla.layer_suggestions, id_medium:Manzanilla.medium._id}});		
 		}
+		else 
+			console.log('no concepts associated with the image :(')
 
 	}, {filter:{id_layer: Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});		
 }
@@ -431,31 +559,6 @@ Manzanilla.prototype.setAutocompleteConcept = function(){
 	});
 }
 
-
-Manzanilla.prototype.setAutocompleteConceptVPK = function(){
-	var that = this;
-	$("#concept").typeahead({
-	    onSelect: function(item) {
-
-	        var concept_data = item.value.split('||');
-
-	        var data = {id:concept_data[0], concept:concept_data[1], author:that.username, id_author:that.user_id};
-	       
-
-			$('#concept_id').val(data.id);
-	    },
-	    title: 'title',
-	    alignWidth: false,
-	    ajax: {
-	        url: "/puertoterm/manzanilla/concepts_by_term.php",
-	        displayField: "label",
-	        loadingClass: 'loadinggif',
-	        timeout: 200,
-	        triggerLength: 3,
-	        method: "get"
-	    }
-	});
-}
 
 Manzanilla.prototype.searchConcepts = function(term){
 	$('#no-results').hide();
@@ -501,7 +604,7 @@ Manzanilla.addConceptToList = function(id, label, concept, list_id, clase, icon)
 }
 
 // === ECOLEXICON RELATIONS ============================================================================================================================ 
-Manzanilla.prototype.getImgRelations = function(filter_author = false){
+Manzanilla.prototype.getImgRelations = function(moreStuff,filter_author = false){
 	var that=this;
 	$('#loading').show();
 	Camomile.getAnnotations(function(err,response){
@@ -511,17 +614,23 @@ Manzanilla.prototype.getImgRelations = function(filter_author = false){
 		} 
 		else if (response.length > 0){
 			$.each(response, function(key, annotation){
-				console.log(annotation);
-				if (!filter_author || annotation.data.author == that.username)
-					Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;');
+				//console.log(annotation);
+				if (!filter_author || annotation.data.author == that.username){
+					if (typeof annotation.data.source !== 'undefined')
+						Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;', true);
+				}
 			});
+			
 		}
 		else {
 			console.log('no relations associated with the image :(')
 		}
 
+		moreStuff();
+
 	}, {filter:{id_layer: Manzanilla.id_layer_relations, id_medium:Manzanilla.medium._id}});	
 }
+
 
 Manzanilla.prototype.setAutocompleteRelation = function(target){
 	target.typeahead({
@@ -610,9 +719,30 @@ Manzanilla.prototype.addAnnotationRelation = function(id_source, source, id_rela
 	});
 }
 
-Manzanilla.addRelationToAnnotationList = function(id_annotation, id_source, source, id_relation, relation, id_target, target, list_id, clase, icon){
+Manzanilla.addRelationToAnnotationList = function(id_annotation, id_source, source, id_relation, relation, id_target, target, list_id, clase, icon, vpksButton=false){
+	
+
+	$('#source-id').val(''); 
+	$('#source').val(''); 
+    $('#source-concept').val('');
+    $('#target-id').val(''); 
+    $('#target').val(''); 
+    $('#target-concept').val('');
+
+
 	var label = '<span class="relation">'+source + '</span><span class="relation">' + relation + '</span><span class="relation">' + target +'</span>';
-	$(list_id).append('<button type="button" id-source="'+id_source+'" r-target="'+target+'" id-target="'+id_target+'" r-source="'+source+'" id-relation="'+id_relation+'" r-relation="'+relation+'"  class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+label+'</button>');
+
+	var vpksButtonLabel = '';
+
+	if (vpksButton)
+		vpksButtonLabel = Manzanilla.getVPKSButton(id_annotation);
+	
+
+	$(list_id).append('<div type="button" id-source="'+id_source+'" r-target="'+target+'" id-target="'+id_target+'" r-source="'+source+'" id-relation="'+id_relation+'" r-relation="'+relation+'"  class="list-group-item '+clase+'" id-anno="'+id_annotation+'"><span>'+icon+'</span>&nbsp;'+label+vpksButtonLabel+'</div>');
+}
+
+Manzanilla.getVPKSButton = function(id_annotation){
+	return '<button class="vpkButton btn btn-xs" data-toggle="button" relation_id='+id_annotation+'>Add VPKs</button>';
 }
 
 // === GENERIC REMOVE ANNOTATION =======================================================================================================================
@@ -638,7 +768,7 @@ Manzanilla.removeAnnotation = function(id){
 }
 
 // === VPKS ============================================================================================================================================
-var VPKS = function(image_path, canvas_id, container_id, username='', filter_author=false){
+var VPKS = function(image_path, canvas_id, container_id, username='', filter_author=false, enabled=true, all_tags=false){
 
 	/*	List of annotations. Structure of annotation:		
 		var annotation = {
@@ -657,22 +787,32 @@ var VPKS = function(image_path, canvas_id, container_id, username='', filter_aut
     this.container = container_id;
     this.selected = '';
     this.username = username;
+    this.enabled = enabled;
 
     this.img = new Image(); 
     var that = this;
 	this.img.addEventListener("load", function(){that.drawImage()}, false);
 	this.img.src = image_path;
-	this.init(filter_author);
+	this.all_tags = all_tags;
+	this.init(filter_author, this.all_tags);
+
+	if(!this.enabled)
+		this.disable();
 
 	$(document.body).on('mouseover', '.vpks-list', function(event){
+
 		var id_anno = $(event.target).attr('id-anno');
 		that.selected = id_anno;
+
+		console.log('encima!', id_anno);
+		
 		that.ctx.clearRect(0,0,that.canvas.width, that.canvas.height);
 		that.draw();
+
     });
 
     $(document.body).on('mouseleave', '.vpks-list', function(event){
-		that.selected = '';
+    	that.selected = '';
 		that.ctx.clearRect(0,0,that.canvas.width, that.canvas.height);
 		that.draw();
     });
@@ -687,7 +827,8 @@ var VPKS = function(image_path, canvas_id, container_id, username='', filter_aut
 
 
 	$('#vpk-dialog').on('shown.bs.modal', function () {
-		$('#annotation').focus()
+		$('#annotation').val('');
+		$('#annotation').focus();
 	});
 
 
@@ -702,24 +843,22 @@ var VPKS = function(image_path, canvas_id, container_id, username='', filter_aut
 
 		var type = $('#type').val();
 		var annotation = $('#annotation').val();
-
-		if (type == 'concept'){
-			annotation = 'Concept "' + $('#concept').val() + '"';
-		}
+		var relation_id = $('#relation_id').val();
 
 	    if (annotation != null) {
 		    var note = {
 					start: {x:that.rect.startX, y:that.rect.startY},
 					size: {width:that.rect.w, height:that.rect.h},
 					annotation: annotation,
-					type:type
+					type:type,
+					relation:relation_id
 				};
 
 			that.annotations.push(note);
 			that.addAnnotationVPKs(note, function(annotation){
 		    	note.id = annotation._id;
-		    	VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;', annotation.data.type);
-		    	console.log(that.annotations);
+		    	VPKS.addVPKSToAnnotationList(annotation._id, annotation,  '#vpks-list', 'vpks-list', '&times;');
+
 			});	
 		}
 
@@ -732,6 +871,8 @@ var VPKS = function(image_path, canvas_id, container_id, username='', filter_aut
 	$(document.body).on('click', '.vpks-list', function(event){
       //removeConceptAnnotation($(this));
       var id = $(this).attr('id-anno');
+
+      event.stopPropagation();
 
       if(confirm('Do you really want to delete the annotation?')){
         $(this).remove();
@@ -749,8 +890,48 @@ var VPKS = function(image_path, canvas_id, container_id, username='', filter_aut
         that.draw();
       }
     });
+
+    $(document.body).on('click', 'button.vpkButton', function(event){
+    	event.stopPropagation();
+    	console.log('click!!');
+    	that.toggle();
+    	if (that.enabled){
+    		
+    		$('#relation_id').val($(this).attr('relation_id'));
+    		$('button.vpkButton').addClass('disabled');
+    		$(this).addClass('vpkButtonActive');
+    		$(this).removeClass('disabled');
+    	}
+    	else{
+    		$(this).removeClass('vpkButtonActive');
+    		$('button.vpkButton').removeClass('disabled');
+    	}
+    });
+    that.draw();
 }
 
+
+VPKS.prototype.addVPK = function(vpk){
+	console.log('adding annotation', vpk);
+
+	var annotation = {
+			id: vpk._id,
+			start: {x:vpk.fragment.start.x, y:vpk.fragment.start.y},
+			size: {width:vpk.fragment.size.width, height:vpk.fragment.size.height},
+			annotation:vpk.data.annotation,
+			type:vpk.data.type
+		}
+
+	this.annotations.push(annotation);
+	this.draw();
+}
+
+
+VPKS.prototype.addVPKs = function(vpks){
+	this.annotations.push.apply(annotations, vpks);
+	console.log(this.annotations);
+	this.draw();
+}
 
 // --- Dealing with Camomile -----
 
@@ -769,17 +950,19 @@ VPKS.prototype.loadAnnotations = function(filter_author=false){
 			$('#loading').hide();
 			$.each(response, function(key, annotation){
 
-				console.log(annotation);
 
 				if (!filter_author || annotation.data.author == that.username){
+
 					var entry = {};
 					entry.id = annotation._id;
 					entry.start = annotation.fragment.start;
 					entry.size = annotation.fragment.size;
 					entry.annotation = annotation.data.annotation;
 					entry.type = annotation.data.type;
+					entry.relation = annotation.data.relation;
 					that.annotations.push(entry);
-					VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;', annotation.data.type);
+
+					VPKS.addVPKSToAnnotationList(annotation._id, annotation,  '#vpks-list', 'vpks-list', '&times;');
 				}
 				//
 				//Manzanilla.removeAnnotation(annotation._id);
@@ -798,7 +981,7 @@ VPKS.prototype.loadAnnotations = function(filter_author=false){
 VPKS.prototype.addAnnotationVPKs = function(annotation, callback){
 
 
-	var data ={annotation: annotation.annotation, type: annotation.type, author:this.username, id_author:this.user_id};
+	var data ={annotation: annotation.annotation, type: annotation.type, author:this.username, id_author:this.user_id, relation:annotation.relation};
 	var fragment = {start:{x: annotation.start.x, y:annotation.start.y}, size:{width:annotation.size.width, height:annotation.size.height}};
 
 	console.log(data);
@@ -816,11 +999,28 @@ VPKS.prototype.addAnnotationVPKs = function(annotation, callback){
 }
 
 // --- UI Stuff ------------------
-VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, clase, icon, type){
-	console.log('adding ' + type + ' to list');
 
+VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, clase, icon){
+
+	console.log('moreSuff adding stuff', annotation.data.type);
 	var glyph ='';
 	var color = '';
+
+	//console.log(annotation);
+
+	if (typeof annotation === 'undefined') return;
+	if (typeof annotation.data === 'undefined') return;
+	console.log(annotation);
+
+	var type = annotation.data.type;
+	var id_rel = annotation.data.relation;
+
+	var fragments = type.split('-');
+	var type_string = '['+fragments.join(' > ') + '] ';
+
+	type = fragments[0];
+
+
 	if (type == 'label'){
 		glyph = 'glyphicon-tag';
 		color = 'style="color:green"';
@@ -833,17 +1033,49 @@ VPKS.addVPKSToAnnotationList = function(id_annotation, annotation,  list_id, cla
 		glyph = 'glyphicon-tint';
 		color = 'style="color:blue"';
 	}
-	else if (type == 'concept'){
-		glyph = 'glyphicon-tree-conifer';
+	else if (type == 'color'){
+		glyph = 'glyphicon-tint';
+		color = 'style="color:blue"';
+	}
+	else if (type == 'number'){
+		glyph = 'glyphicon-sound-5-1';
 		color = 'style="color:orange"';
+	}
+	else if (type == 'logical operator'){
+		glyph = 'glyphicon-knight';
+		color = 'style="color:pink"';
+	}
+	else {
+		glyph = 'glyphicon-question-sign';
+		color = 'style="color:brown"';
 	}
 
 
 	if (icon != '')
 		icon = '&nbsp;&nbsp;<span class="glyphicon glyphicon-remove remove-vpk"  aria-hidden="true"></span>';
 
-	$(list_id).append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'">'+
-				'<span '+ color +' class="glyphicon '+glyph+'"  aria-hidden="true"></span>&nbsp;'+annotation + icon +'</button>');
+
+	$('#relation-list').find('div[id-anno="'+id_rel+'"]').append('<button type="button" class="list-group-item '+clase+'" id-anno="'+id_annotation+'">'+
+				'<span '+ color +' class="glyphicon '+glyph+'"  aria-hidden="true"></span>&nbsp;'+type_string+annotation.data.annotation + icon +'</button>');
+}
+
+VPKS.prototype.disable = function(){
+	console.log('disabling...');
+	this.enabled = false;
+	$(this.canvas).css('cursor','default');
+}
+
+VPKS.prototype.enable = function(){
+	console.log('enabling...');
+	this.enabled = true;
+	$(this.canvas).css('cursor','crosshair');
+}
+
+VPKS.prototype.toggle = function(){
+	if (this.enabled)
+		this.disable();
+	else 
+		this.enable();
 }
 
 // --- Canvas drawing ------------
@@ -868,37 +1100,13 @@ VPKS.prototype.mouseDown = function(e) {
 
 VPKS.prototype.mouseUp = function() {
     this.drag = false;
-    
-
-    $('#vpk-dialog').modal('show');
-    
-    /*var annotation =  prompt("Please enter the text for the annotation", "");
-
-    if (annotation != null) {
-	    var note = {
-				start: {x:this.rect.startX, y:this.rect.startY},
-				size: {width:this.rect.w, height:this.rect.h},
-				annotation:annotation,
-				type:aType;
-			};
-
-		this.annotations.push(note);
-		var that = this;
-		this.addAnnotationVPKs(note, function(annotation){
-	    	note.id = annotation._id;
-	    	VPKS.addVPKSToAnnotationList(annotation._id, annotation.data.annotation,  '#vpks-list', 'vpks-list', '&times;');
-	    	console.log(that.annotations);
-		});	
-	}
-
-	this.rect = {};
-	this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
-	this.draw();*/
+    if (this.enabled)
+    	$('#vpk-dialog').modal('show');
 }
 
 VPKS.prototype.mouseMove = function(e){
 	
-	if (this.drag) {
+	if (this.enabled && this.drag) {
 		this.rect.w = (e.pageX - $(e.target).offset().left) - this.rect.startX;
 		this.rect.h = (e.pageY - $(e.target).offset().top) - this.rect.startY ;
 		this.ctx.clearRect(0,0, this.canvas.width,  this.canvas.height);
@@ -908,42 +1116,50 @@ VPKS.prototype.mouseMove = function(e){
 }
 
 VPKS.prototype.draw = function () {
+
 	this.ctx.lineWidth = 2;
     this.ctx.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
+    
     var that = this;
     $.each(this.annotations, function(key, annotation){
-    	
-    	if (that.selected == annotation.id)
+		var type = annotation.type.split('-')[0];
+
+    	if (!that.all_tags && that.selected == annotation.id)
     		that.ctx.strokeStyle = "yellow";
-    	else if (annotation.type == 'arrow')
+    	else if (type == 'arrow')
     		that.ctx.strokeStyle = "red";
-    	else if (annotation.type == 'color')
+    	else if (type == 'color')
     		that.ctx.strokeStyle = "blue";
-    	else if (annotation.type == 'label')
+    	else if (type == 'label')
     		that.ctx.strokeStyle = "green";
-    	else if (annotation.type == 'concept')
+    	else if (type == 'number')
     		that.ctx.strokeStyle = "orange";
+    	else if (type == "logical operator")
+    		that.ctx.strokeStyle = "pink";
+    	else if (type == "other")
+    		that.ctx.strokeStyle = "brown";
     	else 
     		that.ctx.strokeStyle = "red";
-    	that.ctx.strokeRect(annotation.start.x, annotation.start.y, annotation.size.width, annotation.size.height);
+
+    	if (!that.all_tags || that.selected == annotation.id )
+    		that.ctx.strokeRect(annotation.start.x, annotation.start.y, annotation.size.width, annotation.size.height);
     });
+    if (!this.enabled) return;
     that.ctx.strokeStyle = "red";
     if (this.drag) 
     	this.ctx.strokeRect( this.rect.startX, this.rect.startY, this.rect.w, this.rect.h);
     	//roundedRect(that.ctx, this.rect.startX, this.rect.startY, this.rect.w, this.rect.h, 6);
 }
 
-VPKS.prototype.init = function(filter_author=false) {
+VPKS.prototype.init = function(filter_author=false, all_tags=false) {
 	var that = this;
 
-	this.loadAnnotations(filter_author);
+	if (!all_tags) 	this.loadAnnotations(filter_author);
 
     this.canvas.addEventListener('mousedown', function(e){that.mouseDown(e);}, false);
     this.canvas.addEventListener('mouseup',   function(e){that.mouseUp(e);},   false);
     this.canvas.addEventListener('mousemove', function(e){that.mouseMove(e);}, false);
 }
-
-
 
 function roundedRect(ctx,x,y,width,height,radius){
   ctx.beginPath();
@@ -959,42 +1175,44 @@ function roundedRect(ctx,x,y,width,height,radius){
   ctx.stroke();
 }
 
-
 // === NAVIGATON =======================================================================================================================================
-Manzanilla.gotoTagConcepts = function(img, id_image, eval=false){
+Manzanilla.gotoTagConcepts = function(img, id_image, eval=false, practice=false){
 
-	var eval_sufix = '_eval';
-	if (!eval)
-		eval_sufix = '';
+	var eval_sufix = '';
+	if (practice)
+		eval_sufix = '_practice';
+	else if (eval)
+		eval_sufix = '_eval';
 	window.location = 'tag_concepts'+ eval_sufix +'.php?img=' + img + '&id=' + id_image+ '&success=ok';
 
 }
 
-Manzanilla.gotoTagRelations = function(img, id_image, eval=false){
-	var eval_sufix = '_eval';
-	if (!eval)
-		eval_sufix = '';
+Manzanilla.gotoTagRelations = function(img, id_image, eval=false, practice=false){
+	var eval_sufix = '';
+	if (practice)
+		eval_sufix = '_practice';
+	else if (eval)
+		eval_sufix = '_eval';
 	window.location = 'tag_relations'+ eval_sufix +'.php?img=' + img + '&id=' + id_image;
 }
 
-Manzanilla.gotoTagVPKs = function(img, id_image, eval=false){
-	var eval_sufix = '_eval';
-	if (!eval)
-		eval_sufix = '';
+Manzanilla.gotoTagVPKs = function(img, id_image, eval=false, practice=false){
+	var eval_sufix = '';
+	if (practice)
+		eval_sufix = '_practice';
+	else if (eval)
+		eval_sufix = '_eval';
 	window.location = 'tag_vpks'+ eval_sufix +'.php?img=' + img + '&id=' + id_image;
 }
 
 Manzanilla.gotoMain = function(img, id_image){
-	window.location = 'main.html';
+	window.location = '/apis/manzanilla/main.html';
 }
 
 Manzanilla.gotoMine = function(img, id_image){
-	window.location = 'mine.php';
+	window.location = '/apis/manzanilla/mine.php';
 }
 
-Manzanilla.close = function(){
-	window.close();
-}
 
 // == SUGGESTIONS ======================================================================================================================================
 
@@ -1013,10 +1231,13 @@ function remove_duplicates(objectsArray) {
     }
 
     return objectsArray;
-
 }
 
-Manzanilla.prototype.getConceptSuggestions = function(response){
+Manzanilla.prototype.getConceptSuggestions = function(response, append=false){
+
+	if (response.length == 0)
+		$('#loading2').hide();
+
 	Promise.all(
         response.map(function(val){                    	
         	return $.getJSON('/puertoterm/manzanilla/concepts_suggestions.php?id='+ val.data.id+'&get_id=1'); 
@@ -1026,10 +1247,13 @@ Manzanilla.prototype.getConceptSuggestions = function(response){
 
     	var concepts = [];
     	var added = [];
-    	//remove_duplicates([].concat.apply([], relations));
+
+    	console.log('response',response);
+
 
     	relations.forEach(function(x){
-    		added.push(x.id_concept);
+    		if(!append)
+    			added.push(x.id_concept);
     		x.suggestions.forEach(function(y){
     			concepts.push(y.source);
     			concepts.push(y.target);
@@ -1037,16 +1261,20 @@ Manzanilla.prototype.getConceptSuggestions = function(response){
     	});
     	concepts = remove_duplicates(concepts);
 
+
+
     	$('#loading2').hide();
 		$.each(concepts, function(key, c){
 			if (added.indexOf(c.id) == -1 )
 				Manzanilla.addConceptToList(c.id, c.concept, c.concept, '#suggestions', 'add-concept', '+');
 		});
+
+		console.log(concepts);
 	});	
 }
 
-Manzanilla.prototype.getRelationSuggestions = function(){
-
+Manzanilla.prototype.getRelationSuggestions = function(layer){
+	var that = this;
 	Camomile.getAnnotations(function(err,response){
 		if (err){
 			showError(err);
@@ -1060,16 +1288,20 @@ Manzanilla.prototype.getRelationSuggestions = function(){
             	var relations2 = remove_duplicates([].concat.apply([], relations));
             	$('#loading2').hide();
 				$.each(relations2, function(key, relationship){
-					Manzanilla.addRelationToAnnotationList('-1', relationship.source.id, relationship.source.concept, relationship.relation.id, relationship.relation.relation,  relationship.target.id,  relationship.target.concept, '#suggestions', 'add-relation', '+');
+					Manzanilla.addRelationToAnnotationList('-1', relationship.source.id, relationship.source.concept, relationship.relation.id, relationship.relation.relation,  relationship.target.id,  relationship.target.concept, '#suggestions', 'add-relation', '+', false);
 				});
 			});
 		}
+		else if (layer ==  Manzanilla.id_layer_concepts){
+			that.getRelationSuggestions(Manzanilla.layer_suggestions);	
+		}
 		else {
-			console.log('no relationa associated with the image :(')
+			console.log('No suggestions!');
 		}
 
-	}, {filter:{id_layer: Manzanilla.id_layer_concepts, id_medium:Manzanilla.medium._id}});		
+	}, {filter:{id_layer:layer, id_medium:Manzanilla.medium._id}});		
 }
+
 // === USERS' TAGS =====================================================================================================================================
 Manzanilla.prototype.loadImagesTaggedbyUser = function(){
 	var username = this.username;
@@ -1116,27 +1348,32 @@ Manzanilla.prototype.loadImagesTaggedbyUser = function(){
 			});
        });
     });
-
 }
 
 
 // === TOOL EVALUATION =================================================================================================================================
 
 Manzanilla.prototype.loadEvalImages = function(imgs){
+	
     Promise.all(
-        imgs.map(function(img){                    
+        imgs.map(function(img){ 
+        	var filename = img;                 
         	Camomile.getMedia(
         		function(err, response){
         			console.log(response);
 
-        			response.forEach(function(img){
+        			if  (response.length == 0){
+        				console.log('media ' + filename + ' not found');
+        			}
+        			else {
+
+        				var img = response[0];
         				var responseHTML = "<li><a target='_blank' href='tag_categories_eval.php?id=" + img._id+"&img="+img.name+"'>";
 						responseHTML += "<img id='eco-image-"+img._id+"' id-image='"+img._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + img.name + "' class='img-thumbnail' title='"+  img.description+"' onerror='javascript:hideImage(this);'/></a></li>";
 						$('#concepts').append(responseHTML);
-        			});
 
+        			}
         		}
-
         	,{filter:{name:img,id_corpus:Manzanilla.id_corpus}});
     	})
     ).then(function(images){
@@ -1145,18 +1382,50 @@ Manzanilla.prototype.loadEvalImages = function(imgs){
 }
 
 
-Manzanilla.prototype.loadResultImages  = function(imgs){
+Manzanilla.prototype.loadPracticeImages = function(imgs){
+	
+    Promise.all(
+        imgs.map(function(img){ 
+        	var filename = img;                 
+        	Camomile.getMedia(
+        		function(err, response){
+        			console.log(response);
+
+        			if  (response.length == 0){
+        				console.log('media ' + filename + ' not found');
+        			}
+        			else {
+
+        				var img = response[0];
+        				var responseHTML = "<li><a target='_blank' href='tag_categories_practice.php?id=" + img._id+"&img="+img.name+"'>";
+						responseHTML += "<img id='eco-image-"+img._id+"' id-image='"+img._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + img.name + "' class='img-thumbnail' title='"+  img.description+"' onerror='javascript:hideImage(this);'/></a></li>";
+						$('#concepts').append(responseHTML);
+
+        			}
+        		}
+        	,{filter:{name:img,id_corpus:Manzanilla.id_corpus}});
+    	})
+    ).then(function(images){
+    	console.log('all images loaded');
+    });
+}
+
+Manzanilla.prototype.loadResultImages  = function(imgs, practice=false){
+	var sufix = '';
+	if (practice)
+		sufix = '_practice';
     Promise.all(
         imgs.map(function(img){                    
         	Camomile.getMedia(
         		function(err, response){
         			console.log(response);
 
-        			response.forEach(function(img){
-        				var responseHTML = "<li><a target='_blank' href='all_tags.php?id=" + img._id+"&img="+img.name+"'>";
+        			if (response.length > 0){
+        				var img = response[0];
+        				var responseHTML = "<li><a target='_blank' href='all_tags"+sufix+".php?id=" + img._id+"&img="+img.name+"'>";
 						responseHTML += "<img id='eco-image-"+img._id+"' id-image='"+img._id+"' src='http://ecolexicon.ugr.es/puertoterm/thumb.php?src=" + img.name + "' class='img-thumbnail' title='"+  img.description+"' onerror='javascript:hideImage(this);'/></a></li>";
 						$('#concepts').append(responseHTML);
-        			});
+        			};
 
         		}
 
@@ -1167,6 +1436,59 @@ Manzanilla.prototype.loadResultImages  = function(imgs){
     });
 }
 
+Manzanilla.prototype.getResultsAsCSV = function(imgs){
+
+	$('#loading').show();
+	$('#download-report').prop("disabled",true);
+	
+		
+	Manzanilla.getResults(function(results){
+		console.log(results); 	
+
+		var csv = [];
+
+		Object.keys(results).forEach(function(media){
+
+			if (typeof(config.imgMap[media]) !== 'undefined'){
+				var filename = config.imgMap[media];
+
+				csv.push(filename + '\r\n');
+
+				csv.push(';category\r\n');
+				results[media].category.forEach(function(annotation){
+					csv.push(';;'+annotation.data.author+';'+annotation.data.category+'\r\n');
+				});
+
+
+				csv.push(';concepts\r\n');
+				results[media].concepts.forEach(function(annotation){
+					csv.push(';;'+annotation.data.author+';'+annotation.data.concept+'\r\n');
+				});
+
+
+				csv.push(';relations\r\n');
+				results[media].relations.forEach(function(annotation){
+					if (typeof(annotation.data.author) !== 'undefined')
+					csv.push(';;'+annotation.data.author+';'+annotation.data.source.concept+';'+annotation.data.relation.relation +';'+annotation.data.target.concept+'\r\n');
+				});
+
+
+				csv.push(';VPKS\r\n');
+				results[media].vpks.forEach(function(annotation){
+					csv.push(';;'+annotation.data.author+';'+annotation.data.annotation+'\r\n');
+				});
+			}
+		});
+
+		console.log(csv);
+
+		$('#report').attr('href', window.URL.createObjectURL(new Blob(csv, {type: 'text/csv'})));   
+		$('#report').attr('download', 'informe.csv');
+		$('#report').show();
+		$('#loading').hide();
+		
+	 });
+}
 
 Manzanilla.prototype.getAllTags = function(){
 

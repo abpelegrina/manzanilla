@@ -33,19 +33,33 @@
               <div class="form-group">
                 <label for="type">Type</label>
                 <select class="form-control" name="type" id="type">
-                    <option value="arrow">Arrow</option>
-                    <option value="color">Color</option>
-                    <option value="label">Label</option>
-                    <option value="concept">Concept</option>
+                    <optgroup label="Arrow"></optgroup>
+                    <option value='arrow-delimitation'>&nbsp;&nbsp;Delimitation</option>
+                    <option value='arrow-denomination'>&nbsp;&nbsp;Denomination</option>
+                    
+                    <optgroup label="&nbsp;&nbsp;Dynamism"></optgroup>
+                    <option value='arrow-dynamism-spatial'>&nbsp;&nbsp;&nbsp;&nbsp;Spatial</option>
+                    <option value='arrow-dynamism-temporal'>&nbsp;&nbsp;&nbsp;&nbsp;Temporal</option>
+                                        
+                    <optgroup label="Color"></optgroup>
+                    <option value='color-contrast'>&nbsp;&nbsp;Contrast</option>
+                    <option value='color-realism'>&nbsp;&nbsp;Realism</option>
+
+                    <optgroup label="Label"></optgroup>
+                    <option value='label-denomination'>&nbsp;&nbsp;Denomination</option>
+                    <option value='label-explanation'>&nbsp;&nbsp;Explanation</option>
+
+                    <optgroup label="Number"></optgroup>
+                    <option value='number-denomination'>&nbsp;&nbsp;Denomination</option>
+                    <option value='number-temporality'>&nbsp;&nbsp;Temporality</option>
+
+                    <option value='logical operator'>Logical Operator</option>
+
+                    <option value='other'>Other</option>
+                    
+                    <!--option value="concept">Concept</option-->
                 </select>
               </div>
-
-              <div style="display: none;" class="form-group" id='annotation_concept_container'>
-                <label for="annotation">Concept</label>
-                <input type="text" class="form-control"  autocomplete="on" name="concept" id="concept" placeholder="Concept"/>
-                <input type="hidden" name="concept_id" name="concept_id"/>
-              </div>
-
 
               <div class="form-group" id='annotation_container'>
                 <label for="annotation">Annotation</label>
@@ -154,7 +168,6 @@
             Manzanilla.loadImageMedium($('#id-image').val(),function(){
               new VPKS(image_path, 'the-canvas', 'canvas-container', mnz.username);
               $('#the-image').attr('title', Manzanilla.medium.description);
-               mnz.setAutocompleteConceptVPK();
               $('#finish').click(function(){
                 Manzanilla.gotoMine();
               });

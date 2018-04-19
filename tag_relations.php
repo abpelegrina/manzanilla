@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Manzanilla · Image tagger for EcoLexicon</title>
+    <title>Manzanilla · Tag relations</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -18,6 +18,65 @@
   </head>
 
   <body>
+
+
+     <div id='vpk-dialog' class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Attributes</h4>
+          </div>
+          <div class="modal-body">
+             <form class="form">
+
+              <div class="form-group">
+                <label for="type">Type</label>
+                <select class="form-control" name="type" id="type">
+                    <optgroup label="Arrow"></optgroup>
+                    <option value='arrow-delimitation'>&nbsp;&nbsp;Delimitation</option>
+                    <option value='arrow-denomination'>&nbsp;&nbsp;Denomination</option>
+                    
+                    <optgroup label="&nbsp;&nbsp;Dynamism"></optgroup>
+                    <option value='arrow-dynamism-spatial'>&nbsp;&nbsp;&nbsp;&nbsp;Spatial</option>
+                    <option value='arrow-dynamism-temporal'>&nbsp;&nbsp;&nbsp;&nbsp;Temporal</option>
+                                        
+                    <optgroup label="Color"></optgroup>
+                    <option value='color-contrast'>&nbsp;&nbsp;Contrast</option>
+                    <option value='color-realism'>&nbsp;&nbsp;Realism</option>
+
+                    <optgroup label="Label"></optgroup>
+                    <option value='label-denomination'>&nbsp;&nbsp;Denomination</option>
+                    <option value='label-explanation'>&nbsp;&nbsp;Explanation</option>
+
+                    <optgroup label="Number"></optgroup>
+                    <option value='number-denomination'>&nbsp;&nbsp;Denomination</option>
+                    <option value='number-temporality'>&nbsp;&nbsp;Temporality</option>
+
+                    <option value='logical operator'>Logical Operator</option>
+
+                    <option value='other'>Other</option>
+                    
+                    <!--option value="concept">Concept</option-->
+                </select>
+              </div>
+
+
+              <div class="form-group" id='annotation_container'>
+                <label for="annotation">Annotation</label>
+                <input type="text" class="form-control"  autocomplete="off" name="annotation" id="annotation" placeholder="Annotation">
+              </div>
+
+              <input type="hidden" name="relation_id" id="relation_id" value=""/>
+             </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" id='cancel-vpk'>Cancel</button>
+            <button type="button" class="btn btn-primary" id='save-vpk'>Save VPK</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -53,7 +112,10 @@
 
   <div class="row">
     <div class="col-md-6">
-       <?php echo "<img  id='the-image' src='http://ecolexicon.ugr.es/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
+       <!--?php echo "<img  id='the-image' src='http://ecolexicon.ugr.es/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?-->
+       <div id='canvas-container'><canvas id='the-canvas'></canvas></div>
+      <input type='hidden' name='id-image' id='id-image' value="<?php echo $_GET['id']?>"/>
+      <input type='hidden' name='image' id='image' value="<?php echo $_GET['img']?>"/>
     </div>
     <div class="col-md-6"  id='tag-form'>
 
@@ -158,12 +220,12 @@
         </div>
       </div>
 
-      <hr/>
+      <!--hr/>
       <div class="input-group">
         <button type="button" class="btn btn-primary" id='tag-relation'>Go to tag VPKs »</button>
       </div>
 
-      <!--
+      <
       <div class="form-group">
         <label for="category" class="control-label">Choose one category</label>
         <select name="category" id="category" class="form-control">
@@ -195,17 +257,30 @@
 
     <script language=javascript>
       $(function (){
+        $('#vpk-dialog').modal({'show':false});
         var mnz = new Manzanilla();
         mnz.aunthenticate();
+        var image_path = '/visual/imagenes/' + $("#image").val();
 
         Manzanilla.loadImageMedium($('#id-image').val(),function(){
           $('#the-image').attr('title', Manzanilla.medium.description);
           
-          mnz.getImgRelations();
-          mnz.getRelationSuggestions();
+          
+          var vpks;
+          mnz.getImgRelations(function(){
+            console.log('more stuff...');
+            vpks = new VPKS(image_path, 'the-canvas', 'canvas-container', mnz.username);
+            vpks.disable();
+          });
+          mnz.getRelationSuggestions(Manzanilla.id_layer_concepts);
 
           mnz.setAutocompleteRelation($('#source'));
           mnz.setAutocompleteRelation($('#target'));
+
+
+          $('#tag-relation').click(function(){
+            Manzanilla.close();
+          });
 
           $(document.body).on('click', '.remove-concept', function(event){
             //removeConceptAnnotation($(this));
@@ -234,15 +309,18 @@
               var id_target = $(this).attr('id-target');
               var target = $(this).attr('r-target');
 
-              Manzanilla.addAnnotationRelation(id_source, source, id_relation, relation, id_target, target,function(annotation){
-                Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;');
+             
+
+              mnz.addAnnotationRelation(id_source, source, id_relation, relation, id_target, target,function(annotation){
+
+
+                Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;', true);
                 $(that).remove();
+
+
+                console.log('id: '+annotation._id);
               });
             }
-          });
-
-          $('#tag-relation').click(function(){
-            Manzanilla.gotoTagVPKs($('#image').val(), $('#id-image').val());
           });
 
           $('#add-anno-relation').click(function(){
@@ -251,11 +329,20 @@
             var id_target = $('#target-id').val(), target = $('#target-concept').val();
 
 
-            Manzanilla.addAnnotationRelation(id_source, source, id_relation, relation, id_target, target,function(annotation){
-              Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;');
-            });
-          });
+            if (id_source == '' || id_target == ''){
+              alert('Target or source not an EcoLexicon concept! Please, make sure to click a concept from the autocomplete list.');
+            }
+            else {
+              mnz.addAnnotationRelation(id_source, source, id_relation, relation, id_target, target,function(annotation){
+                Manzanilla.addRelationToAnnotationList(annotation._id, annotation.data.source.id, annotation.data.source.concept, annotation.data.relation.id, annotation.data.relation.relation, annotation.data.target.id, annotation.data.target.concept,'#relation-list', 'remove-concept', '&times;', true);
+                  
+              });
+             }
 
+          });
+          
+
+          
         });
 
       });

@@ -32,6 +32,15 @@ body {
 	margin-bottom:4px;
 }
 
+div.relation{
+	border: solid #ddd 1px;
+	padding: 4px;
+	margin: 4px 4px;
+	height: 100%;
+	float:left;
+}
+
+
 span.relation{
 	border: solid #ddd 1px;
 	padding: 4px;
@@ -98,4 +107,40 @@ ul.list-inline li:last-child{
 
 .remove-vpk{
 	float: right;
+}
+
+.vpks-list{
+	margin-top:6px;
+}
+
+button.vpkButton{
+	float:right;
+	border: solid 1px #eee;
+}
+
+button.vpkButton:hover{
+	background-color: #ddd;
+}
+
+button.vpkButtonActive{
+	background-color: #00DD00;
+	color:white;
+}
+
+button.vpkButtonActive:hover{
+	background-color: #00BB00;
+	color:white;
+}
+
+span.concept_cloud{
+	border: solid #ddd 1px;
+	padding: 0px;
+	margin: 8px 0px;
+	height: 100%;
+	display: block;
+	float:left;
+}
+
+.clear{
+	clear: both;
 }

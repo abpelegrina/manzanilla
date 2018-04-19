@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Manzanilla · Image tagger for EcoLexicon</title>
+    <title>Manzanilla · Image tags</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -18,38 +18,6 @@
   </head>
 
   <body>
-
-
-    <div id='vpk-dialog' class="modal fade" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title">Attributes</h4>
-          </div>
-          <div class="modal-body">
-             <form class="form">
-              <div class="form-group">
-                <label for="annotation">Annotation</label>
-                <input type="text" class="form-control"  autocomplete="off" name="annotation" id="annotation" placeholder="Annotation">
-              </div>
-              <div class="form-group">
-                <label for="type">Type</label>
-                <select class="form-control" name="type" id="type">
-                    <option value="arrow">Arrow</option>
-                    <option value="color">Color</option>
-                    <option value="label">Label</option>
-                </select>
-              </div>
-             </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal" id='cancel-vpk'>Cancel</button>
-            <button type="button" class="btn btn-primary" id='save-vpk'>Save VPK</button>
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -85,8 +53,8 @@
 
   <div class="row">
     <div class="col-md-8">
-      <?php echo "<img  id='the-image' src='/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?>
-      <!--div id='canvas-container'><canvas id='the-canvas'></canvas></div-->
+      <!--?php echo "<img  id='the-image' src='/visual/imagenes/".$_GET['img']."' class='img-responsive img-thumbnail'/>";?-->
+      <div id='canvas-container'><canvas id='the-canvas'></canvas></div>
 
 
       <input type='hidden' name='id-image' id='id-image' value="<?php echo $_GET['id']?>"/>
@@ -102,15 +70,12 @@
       <div id='annotations' style='display:none'>
         <h5>Category:</h5>
         <span id='category-list' class="list-group"></span>
-        <hr/>
+        <hr class='clear'/>
         <h5>Concepts:</h5>
         <div id='concepts-list' class="list-group"></div>
-        <hr/>
+        <hr class='clear'/>
         <h5>Relations:</h5>
-        <div id='relations-list' class="list-group"></div>
-        <hr/>
-        <h5>VPKs:</h5>
-        <div id='vpks-list' class="list-group"></div>
+        <div id='relation-list' class="list-group"></div>
         <hr/>
       </div>
       
@@ -137,7 +102,7 @@
 
       $(function (){
 
-        $('#vpk-dialog').modal({'show':false});
+       
 
         var image_path = '/visual/imagenes/' + $("#image").val();
         var mnz = new Manzanilla();
@@ -147,25 +112,31 @@
               
 
               Manzanilla.getAllImagesAnnotatios($("#image").val(), function(annotations){
+
+
+                vpks = new VPKS(image_path, 'the-canvas', 'canvas-container', mnz.username,false, false, true);
                 $('#loading').hide();
 
                 $('#category-list').append( '<span class="relation"> ' + annotations.category.map(function(category){ return category.data.category}).join('</span>, <span class="relation">') + '</span>');
                 $('#concepts-list').append('<span class="relation"> ' +  annotations.concepts.map(function(category){ return category.data.concept}).join('</span>, <span class="relation">') + '</span>');
 
 
-                $('#relations-list').append(annotations.relations.map(function(category){ 
+                $('#relation-list').append(annotations.relations.map(function(category){
 
-                                                        var label = category.data.source.concept + ' --'+ category.data.relation.relation + '--> '
-                                                                    + category.data.source.concept;
+                  if (typeof category.data.source === 'undefined') return '';
+                    var label = category.data.source.concept + ' --'+ category.data.relation.relation + '--> '
+                                + category.data.target.concept;
+                   
+                  return '<div class="relation" id-anno="'+ category._id +'">'+label+'</div>';
+                }));
 
-                                                        VPKS.addVPKSToAnnotationList(category._id, label, '#relations-list', '', '', '');
-                                                      }));
-                $('#vpks-list').append(annotations.vpks.map(function(category){ 
+                $('#vpks-list').append(annotations.vpks.map(function(vpk){ 
+                  var id_relation = vpk.data.relation;
 
-                                                        var label = category.data.annotation;
-
-                                                        VPKS.addVPKSToAnnotationList(category._id, label, '#vpks-list', '', '', category.data.type);
-                                                      }));
+                      console.log(id_relation);
+                      vpks.addVPK(vpk);
+                      VPKS.addVPKSToAnnotationList(vpk._id, vpk, '', 'vpks-list', '');
+                }));
                 $('#annotations').show();
               });
             });
